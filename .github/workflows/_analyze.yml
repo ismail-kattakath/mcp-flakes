@@ -1,0 +1,118 @@
+# Reusable workflow: deterministic analysis of a repo with optional Qwen fallback.
+#
+# Runs heuristic-based detection of language, build system, license, tools, env
+# vars, and entry point. Falls back to Qwen SDK for gaps when QWEN_API_KEY is
+# available (non-fatal if absent or if Qwen fails).
+name: _analyze
+
+on:
+  workflow_call:
+    inputs:
+      repo:
+        description: 'Upstream repo URL or slug (owner/name).'
+        required: true
+        type: string
+      subpath:
+        description: 'Optional monorepo subpath.'
+        required: false
+        type: string
+        default: ''
+      skip_fallback:
+        description: 'If true, skip the Qwen fallback even when heuristics have gaps.'
+        required: false
+        type: boolean
+        default: false
+    outputs:
+      ok:
+        description: 'Boolean string: whether analysis succeeded.'
+        value: ${{ jobs.analyze.outputs.ok }}
+      result_json:
+        description: 'Full analysis result as single-line JSON.'
+        value: ${{ jobs.analyze.outputs.result_json }}
+      needs_fallback:
+        description: 'Boolean: whether heuristics had gaps even after fallback.'
+        value: ${{ jobs.analyze.outputs.needs_fallback }}
+      commit_sha:
+        description: 'Resolved commit SHA from the analyzed repo.'
+        value: ${{ jobs.analyze.outputs.commit_sha }}
+      runner:
+        description: 'Detected runner (node, python, etc.).'
+        value: ${{ jobs.analyze.outputs.runner }}
+      build_pattern:
+        description: 'Detected build pattern.'
+        value: ${{ jobs.analyze.outputs.build_pattern }}
+      tools_json:
+        description: 'JSON array of detected tool names.'
+        value: ${{ jobs.analyze.outputs.tools_json }}
+      fallback_used:
+        description: 'Boolean: whether Qwen fallback was invoked.'
+        value: ${{ jobs.analyze.outputs.fallback_used }}
+
+jobs:
+  analyze:
+    name: analyze
+    runs-on: ubuntu-latest
+    outputs:
+      ok: ${{ steps.run.outputs.ok }}
+      result_json: ${{ steps.run.outputs.result_json }}
+      needs_fallback: ${{ steps.run.outputs.needs_fallback }}
+      commit_sha: ${{ steps.run.outputs.commit_sha }}
+      runner: ${{ steps.run.outputs.runner }}
+      build_pattern: ${{ steps.run.outputs.build_pattern }}
+      tools_json: ${{ steps.run.outputs.tools_json }}
+      fallback_used: ${{ steps.run.outputs.fallback_used }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Build contrib-agent
+        run: cd tools/contrib-agent && npm ci --silent && npm run build
+
+      - name: Run contrib-agent analyze
+        id: run
+        env:
+          REPO_INPUT: ${{ inputs.repo }}
+          SUBPATH_INPUT: ${{ inputs.subpath }}
+          SKIP_FALLBACK: ${{ inputs.skip_fallback }}
+          QWEN_API_KEY: ${{ secrets.QWEN_API_KEY || '' }}
+        run: |
+          set -euo pipefail
+
+          SKIP_FB="false"
+          if [ "$SKIP_FALLBACK" = "true" ] || [ -z "$QWEN_API_KEY" ]; then
+            SKIP_FB="true"
+          fi
+
+          INPUT=$(jq -nc \
+            --arg repo "$REPO_INPUT" \
+            --arg subpath "$SUBPATH_INPUT" \
+            --argjson skipFallback "$SKIP_FB" \
+            '{repo:$repo, skipFallback:$skipFallback} + (if $subpath == "" then {} else {subpath:$subpath} end)')
+
+          echo "analyze input: $INPUT" >&2
+          RESULT=$(printf '%s' "$INPUT" | node tools/contrib-agent/dist/index.js analyze)
+          echo "analyze result (first 500 chars): ${RESULT:0:500}" >&2
+
+          OK=$(printf '%s' "$RESULT" | jq -r '.ok // false')
+          NEEDS_FB=$(printf '%s' "$RESULT" | jq -r '.needsFallback // false')
+          COMMIT=$(printf '%s' "$RESULT" | jq -r '.commitSha // ""')
+          RUNNER=$(printf '%s' "$RESULT" | jq -r '.runner // ""')
+          PATTERN=$(printf '%s' "$RESULT" | jq -r '.buildPattern // ""')
+          TOOLS=$(printf '%s' "$RESULT" | jq -c '.tools // []')
+
+          echo "ok=$OK" >> "$GITHUB_OUTPUT"
+          echo "needs_fallback=$NEEDS_FB" >> "$GITHUB_OUTPUT"
+          echo "commit_sha=$COMMIT" >> "$GITHUB_OUTPUT"
+          echo "runner=$RUNNER" >> "$GITHUB_OUTPUT"
+          echo "build_pattern=$PATTERN" >> "$GITHUB_OUTPUT"
+          FALLBACK=$(printf '%s' "$RESULT" | jq -r '.fallbackUsed // false')
+          echo "tools_json=$TOOLS" >> "$GITHUB_OUTPUT"
+          echo "fallback_used=$FALLBACK" >> "$GITHUB_OUTPUT"
+          {
+            echo "result_json<<__EOF__"
+            printf '%s\n' "$RESULT"
+            echo "__EOF__"
+          } >> "$GITHUB_OUTPUT"

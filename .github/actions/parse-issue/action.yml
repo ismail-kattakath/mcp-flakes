@@ -8,6 +8,9 @@ outputs:
   repos:
     description: "Newline-separated, normalized, deduplicated GitHub URLs."
     value: ${{ steps.parse.outputs.repos }}
+  repos_json:
+    description: "JSON array of normalized, deduplicated GitHub URLs (for matrix strategy)."
+    value: ${{ steps.parse.outputs.repos_json }}
   count:
     description: "Number of URLs parsed."
     value: ${{ steps.parse.outputs.count }}
@@ -74,11 +77,18 @@ runs:
 
         count=$(wc -l < "$normalized_file" | tr -d ' ')
 
-        # Emit multi-line `repos` and scalar `count` to GITHUB_OUTPUT.
+        # Build a JSON array from the normalized URLs.
+        repos_json="[]"
+        if [ -s "$normalized_file" ]; then
+          repos_json=$(jq -Rcn '[inputs | select(length > 0)]' < "$normalized_file")
+        fi
+
+        # Emit multi-line `repos`, JSON `repos_json`, and scalar `count` to GITHUB_OUTPUT.
         {
           echo "repos<<EOF"
           cat "$normalized_file"
           echo "EOF"
+          echo "repos_json=${repos_json}"
           echo "count=${count}"
         } >> "$GITHUB_OUTPUT"
 

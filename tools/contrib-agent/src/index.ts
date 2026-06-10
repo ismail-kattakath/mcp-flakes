@@ -4,6 +4,8 @@ import { discover } from './stages/discover.js';
 import { filter } from './stages/filter.js';
 import { expand } from './stages/expand.js';
 import { triage } from './stages/triage.js';
+import { analyze, needsFallback } from './stages/analyze.js';
+import { qwenFallback, mergeAnalysisWithFallback } from './agent/qwen-fallback.js';
 import { synthesize, cleanupWorkdir } from './stages/synthesize.js';
 import { validate } from './stages/validate.js';
 import { openPr } from './stages/pr.js';
@@ -39,6 +41,9 @@ async function main(): Promise<void> {
 
     // Per-stage subcommands — each reads JSON on stdin, writes one JSON line
     // to stdout. Workflow steps chain them via redirection or pipes.
+    case 'analyze':
+      await cmdAnalyze();
+      return;
     case 'filter':
       await cmdFilter();
       return;
@@ -72,6 +77,7 @@ async function main(): Promise<void> {
           '  contrib-agent status\n' +
           '\n' +
           'Per-stage (stdin: JSON, stdout: JSON):\n' +
+          '  contrib-agent analyze     < {"repo":"https://github.com/owner/name","subpath":"src/foo"}\n' +
           '  contrib-agent filter      < {"repo":"https://github.com/owner/name","subpath":"src/foo"}\n' +
           '  contrib-agent expand      < {"repo":"https://github.com/owner/name","branch":"main"}\n' +
           '  contrib-agent dedup       < {"name":"foo","upstream":{"repo":"...","commit":"...","license":"MIT"},"tools":["..."]}\n' +
@@ -165,6 +171,32 @@ async function cmdStatus(): Promise<void> {
 // ---------------------------------------------------------------------------
 // Per-stage subcommands
 // ---------------------------------------------------------------------------
+
+async function cmdAnalyze(): Promise<void> {
+  const input = await readStdinJson<{ repo: string; subpath?: string; skipFallback?: boolean }>();
+  requireString(input.repo, 'repo');
+  let result = await analyze(input.repo, input.subpath);
+
+  const wantsFallback = needsFallback(result) && !input.skipFallback;
+  if (wantsFallback) {
+    log.info('analyze.fallback_needed', {
+      tools: result.confidence.tools,
+      envVars: result.confidence.envVars,
+      entrypoint: result.confidence.entrypoint,
+    });
+    const fb = await qwenFallback(result);
+    if (fb.ok) {
+      result = mergeAnalysisWithFallback(result, fb);
+    }
+  }
+
+  writeStdoutJson({
+    ok: true,
+    ...result,
+    needsFallback: needsFallback(result),
+    fallbackUsed: wantsFallback,
+  });
+}
 
 async function cmdFilter(): Promise<void> {
   const input = await readStdinJson<{ repo: string; subpath?: string }>();

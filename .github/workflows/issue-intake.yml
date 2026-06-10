@@ -13,6 +13,10 @@ jobs:
   intake:
     if: github.event.label.name == 'flake-request'
     runs-on: ubuntu-latest
+    outputs:
+      repos_json: ${{ steps.parse.outputs.repos_json }}
+      count: ${{ steps.parse.outputs.count }}
+      branch: ${{ steps.branch.outputs.name }}
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
@@ -38,11 +42,8 @@ jobs:
             --repo "$REPO" \
             --body 'No valid GitHub URLs found in the issue body. Please format as one URL per line, e.g. `https://github.com/owner/name`.'
 
-      - name: Stop if no URLs
-        if: steps.parse.outputs.count == '0'
-        run: exit 0
-
       - name: Create branch from main (idempotent)
+        if: steps.parse.outputs.count != '0'
         id: branch
         env:
           ISSUE_NUMBER: ${{ github.event.issue.number }}
@@ -66,6 +67,7 @@ jobs:
           fi
 
       - name: Comment acknowledgement on issue
+        if: steps.parse.outputs.count != '0'
         env:
           GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
@@ -102,25 +104,25 @@ jobs:
               printf '\n…and %s more\n' "$remaining"
             fi
 
-            printf '\nPer-stage pipeline dispatch is queued for slice 3.\n'
+            printf '\nPipeline dispatch starting — each repo will be processed through expand → filter → dedup → synthesize → validate → open PR.\n'
           } > "$comment_file"
 
           gh issue comment "$ISSUE_NUMBER" \
             --repo "$REPO" \
             --body-file "$comment_file"
 
-      # TODO(slice-3): dispatch _flake-pipeline.yml per repo. Eventual matrix-and-call shape:
-      #
-      # dispatch:
-      #   needs: intake
-      #   if: steps.parse.outputs.count != '0'
-      #   strategy:
-      #     fail-fast: false
-      #     matrix:
-      #       repo: ${{ fromJSON(steps.parse.outputs.repos_json) }}
-      #   uses: ./.github/workflows/_flake-pipeline.yml
-      #   with:
-      #     repo_url: ${{ matrix.repo }}
-      #     branch: ${{ steps.branch.outputs.name }}
-      #     issue_number: ${{ github.event.issue.number }}
-      #   secrets: inherit
+  dispatch:
+    needs: intake
+    if: needs.intake.outputs.count != '0'
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        repo: ${{ fromJSON(needs.intake.outputs.repos_json) }}
+    uses: ./.github/workflows/_flake-pipeline.yml
+    with:
+      repo: ${{ matrix.repo }}
+      branch_name: ${{ needs.intake.outputs.branch }}
+      issue_number: ${{ github.event.issue.number }}
+    secrets:
+      aws_bearer_token_bedrock: ${{ secrets.AWS_BEARER_TOKEN_BEDROCK }}

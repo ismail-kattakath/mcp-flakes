@@ -1,6 +1,14 @@
-# Reusable orchestrator: runs the full expand -> filter -> dedup-pre ->
-# synthesize -> dedup-post -> validate -> open-pr pipeline for a single
-# upstream repo (optionally a monorepo subpath via owner/name#subpath).
+# Reusable orchestrator for a single upstream repo (optionally a monorepo
+# subpath via owner/name#subpath).
+#
+# Job graph (simplified):
+#   expand-and-filter → resolve-commit → build-pre-candidate → dedup-pre
+#     → dedup-pre-gate → analyze ─┐
+#                                  ├→ synthesize → validate → compute-flake-name
+#                                  │     ├→ build-post-candidate → dedup-post   │
+#                                  │     └────────────────────────→ build-image ─┤
+#                                  └──────────────────────────────→ open-pr ─────┤
+#                                                                        report ←┘
 #
 # v1 punts monorepo matrix dispatch: if a monorepo is detected and the caller
 # did not specify a subpath, we comment on the issue (if provided) and exit
@@ -232,9 +240,18 @@ jobs:
         run: |
           gh issue comment "$ISSUE" -R "$REPO" --body "Dedup result: \`${KIND}\` — not eligible for automated pipeline. See dedup output for details."
 
+  analyze:
+    name: analyze
+    needs: [expand-and-filter, dedup-pre-gate]
+    if: ${{ needs.dedup-pre-gate.outputs.proceed == 'true' }}
+    uses: ./.github/workflows/_analyze.yml
+    with:
+      repo: ${{ needs.expand-and-filter.outputs.repo_slug }}
+      subpath: ${{ needs.expand-and-filter.outputs.subpath }}
+
   synthesize:
     name: synthesize
-    needs: [expand-and-filter, dedup-pre-gate]
+    needs: [expand-and-filter, dedup-pre-gate, analyze]
     if: ${{ needs.dedup-pre-gate.outputs.proceed == 'true' }}
     uses: ./.github/workflows/_synthesize.yml
     with:
@@ -292,17 +309,111 @@ jobs:
       manifest: ${{ needs.synthesize.outputs.manifest }}
       skip_smoke: true
 
+  compute-flake-name:
+    name: compute flake name
+    needs: [validate]
+    if: ${{ needs.validate.outputs.ok == 'true' }}
+    runs-on: ubuntu-latest
+    outputs:
+      name: ${{ steps.name.outputs.name }}
+    steps:
+      - name: Extract name from flake_dir
+        id: name
+        env:
+          FLAKE_DIR: ${{ needs.validate.outputs.flake_dir }}
+        run: echo "name=$(basename "$FLAKE_DIR")" >> "$GITHUB_OUTPUT"
+
+  build-image:
+    name: build image
+    needs: [synthesize, validate, compute-flake-name]
+    if: ${{ needs.synthesize.outputs.ok == 'true' && needs.validate.outputs.ok == 'true' }}
+    uses: ./.github/workflows/_build.yml
+    with:
+      flake_name: ${{ needs.compute-flake-name.outputs.name }}
+      push: false
+
   open-pr:
     name: open-pr
-    needs: [synthesize, dedup-post, validate]
+    needs: [synthesize, dedup-post, validate, compute-flake-name, build-image]
     if: ${{ always() && needs.synthesize.outputs.ok == 'true' && needs.validate.result != 'cancelled' }}
     uses: ./.github/workflows/_pr.yml
     with:
       manifest: ${{ needs.synthesize.outputs.manifest }}
       flake_dir: ${{ needs.validate.outputs.flake_dir }}
       smoke_output: ${{ needs.validate.outputs.smoke_output }}
-      needs_human: ${{ needs.validate.outputs.ok != 'true' }}
-      needs_human_reason: ${{ needs.validate.outputs.ok != 'true' && format('validate failed at stage {0}', needs.validate.outputs.stage) || '' }}
+      needs_human: ${{ needs.validate.outputs.ok != 'true' || needs.build-image.result != 'success' }}
+      needs_human_reason: ${{ needs.validate.outputs.ok != 'true' && format('validate failed at stage {0}', needs.validate.outputs.stage) || needs.build-image.result != 'success' && 'image build failed' || '' }}
       dedup_kind: ${{ needs.dedup-post.outputs.kind }}
       auto_merge_eligible: ${{ needs.dedup-post.outputs.auto_merge_eligible == 'true' }}
       branch_name: ${{ inputs.branch_name }}
+
+  report:
+    name: report to issue
+    needs: [expand-and-filter, analyze, synthesize, validate, compute-flake-name, build-image, open-pr]
+    if: ${{ always() && inputs.issue_number != 0 && needs.expand-and-filter.outputs.continue == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Build and post status comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE: ${{ inputs.issue_number }}
+          REPO_FULL: ${{ github.repository }}
+          INPUT_REPO: ${{ inputs.repo }}
+          ANALYZE_OK: ${{ needs.analyze.outputs.ok }}
+          ANALYZE_PATTERN: ${{ needs.analyze.outputs.build_pattern }}
+          ANALYZE_RUNNER: ${{ needs.analyze.outputs.runner }}
+          SYNTH_OK: ${{ needs.synthesize.outputs.ok }}
+          SYNTH_ERROR: ${{ needs.synthesize.outputs.error }}
+          SYNTH_TOKENS: ${{ needs.synthesize.outputs.tokens_used }}
+          VALIDATE_OK: ${{ needs.validate.outputs.ok }}
+          VALIDATE_STAGE: ${{ needs.validate.outputs.stage }}
+          BUILD_RESULT: ${{ needs.build-image.result }}
+          PR_URL: ${{ needs.open-pr.outputs.pr_url }}
+        run: |
+          set -euo pipefail
+          comment_file="$(mktemp)"
+
+          {
+            printf '### Pipeline result for `%s`\n\n' "$INPUT_REPO"
+
+            # Analyze
+            if [ "$ANALYZE_OK" = "true" ]; then
+              printf '- **Analyze**: %s / %s\n' "$ANALYZE_RUNNER" "$ANALYZE_PATTERN"
+            else
+              printf '- **Analyze**: failed\n'
+            fi
+
+            # Synthesize
+            if [ "$SYNTH_OK" = "true" ]; then
+              printf '- **Synthesize**: success (%s tokens)\n' "${SYNTH_TOKENS:-?}"
+            else
+              printf '- **Synthesize**: failed — %s\n' "${SYNTH_ERROR:-unknown error}"
+            fi
+
+            # Validate
+            if [ "$VALIDATE_OK" = "true" ]; then
+              printf '- **Validate**: passed\n'
+            elif [ -n "$VALIDATE_STAGE" ]; then
+              printf '- **Validate**: failed at stage `%s`\n' "$VALIDATE_STAGE"
+            else
+              printf '- **Validate**: skipped or not reached\n'
+            fi
+
+            # Build
+            case "$BUILD_RESULT" in
+              success) printf '- **Build**: image built successfully\n' ;;
+              failure) printf '- **Build**: image build failed\n' ;;
+              *) printf '- **Build**: skipped\n' ;;
+            esac
+
+            # PR
+            if [ -n "$PR_URL" ]; then
+              printf '\n**PR**: %s\n' "$PR_URL"
+            fi
+          } > "$comment_file"
+
+          gh issue comment "$ISSUE" \
+            -R "$REPO_FULL" \
+            --body-file "$comment_file"
