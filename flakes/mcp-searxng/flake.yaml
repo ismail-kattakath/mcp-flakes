@@ -1,0 +1,129 @@
+name: mcp-searxng
+upstream:
+  repo: https://github.com/ihor-sokoliuk/mcp-searxng
+  commit: 80bdaf054b8e6da6429eb7a49ca9eaeb973de0ee
+  license: MIT
+  package: mcp-searxng
+  package_version: 1.3.2
+runner: node
+build:
+  type: npm-package
+  install: npm install -g mcp-searxng@1.3.2
+  entrypoint:
+    - npx
+    - -y
+    - mcp-searxng
+transport: stdio
+env:
+  - name: SEARXNG_URL
+    required: true
+    secret: false
+    description: URL of your SearXNG instance (e.g. http://localhost:8080)
+  - name: AUTH_USERNAME
+    required: false
+    secret: false
+    description: HTTP Basic Auth username for password-protected SearXNG instances
+  - name: AUTH_PASSWORD
+    required: false
+    secret: true
+    description: HTTP Basic Auth password for password-protected SearXNG instances
+  - name: SEARXNG_TIMEOUT_MS
+    required: false
+    secret: false
+    description: "Maximum time in milliseconds to wait for a SearXNG search response
+      (default: 10000)"
+  - name: USER_AGENT
+    required: false
+    secret: false
+    description: Global User-Agent header for all outgoing requests
+  - name: URL_READER_USER_AGENT
+    required: false
+    secret: false
+    description: User-Agent for web_url_read only, overrides USER_AGENT
+  - name: HTTP_PROXY
+    required: false
+    secret: false
+    description: Global HTTP proxy for all traffic
+  - name: HTTPS_PROXY
+    required: false
+    secret: false
+    description: Global HTTPS proxy for all traffic
+  - name: SEARCH_HTTP_PROXY
+    required: false
+    secret: false
+    description: HTTP proxy for searxng_web_search only
+  - name: SEARCH_HTTPS_PROXY
+    required: false
+    secret: false
+    description: HTTPS proxy for searxng_web_search only
+  - name: URL_READER_HTTP_PROXY
+    required: false
+    secret: false
+    description: HTTP proxy for web_url_read only
+  - name: URL_READER_HTTPS_PROXY
+    required: false
+    secret: false
+    description: HTTPS proxy for web_url_read only
+  - name: NO_PROXY
+    required: false
+    secret: false
+    description: Comma-separated bypass list for proxy (e.g.
+      localhost,.internal,example.com)
+  - name: MCP_HTTP_PORT
+    required: false
+    secret: false
+    description: Port number to enable HTTP transport mode (e.g. 3000)
+  - name: MCP_HTTP_HOST
+    required: false
+    secret: false
+    description: "Interface address to bind to in HTTP mode (default: 127.0.0.1)"
+  - name: MCP_RATE_WINDOW_MS
+    required: false
+    secret: false
+    description: "Rate limiting sliding window duration in milliseconds (default: 60000)"
+  - name: MCP_RATE_INIT_MAX
+    required: false
+    secret: false
+    description: "Max POST /mcp requests per rate limit window (default: 20)"
+  - name: MCP_RATE_SESSION_MAX
+    required: false
+    secret: false
+    description: "Max GET/DELETE /mcp requests per rate limit window (default: 300)"
+  - name: MCP_HTTP_HARDEN
+    required: false
+    secret: false
+    description: "Enable hardened HTTP security features (default: false)"
+  - name: MCP_HTTP_AUTH_TOKEN
+    required: false
+    secret: true
+    description: Bearer token for HTTP requests in hardened mode
+  - name: MCP_HTTP_ALLOWED_ORIGINS
+    required: false
+    secret: false
+    description: Comma-separated CORS origin allowlist for hardened mode
+  - name: MCP_HTTP_ALLOWED_HOSTS
+    required: false
+    secret: false
+    description: Comma-separated DNS rebinding protection allowlist for hardened mode
+  - name: MCP_HTTP_ALLOW_PRIVATE_URLS
+    required: false
+    secret: false
+    description: "Allow web_url_read to fetch internal/private URLs (default: false)"
+  - name: MCP_HTTP_EXPOSE_FULL_CONFIG
+    required: false
+    secret: false
+    description: "Expose full config details in /health response (default: false)"
+  - name: NODE_ENV
+    required: false
+    secret: false
+    description: Node.js environment (development/production)
+tools:
+  - searxng_web_search
+  - web_url_read
+publish_image: true
+compliance:
+  license_verified: false
+  authors:
+    - Ihor Sokoliuk
+  copyright: © 2024 IS
+  last_checked: 2026-06-10
