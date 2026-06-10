@@ -19,7 +19,9 @@ INITIALIZE_REQUEST='{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"pro
 TOOLS_LIST_REQUEST='{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}'
 
 echo "Step 1: Sending initialize request..."
-INIT_RESPONSE=$(echo "$INITIALIZE_REQUEST" | docker run -i --rm "$IMAGE" | head -1)
+# MCP servers may emit notifications (e.g. "connected via STDIO") before the
+# actual initialize response. Filter by the request id to pick the response.
+INIT_RESPONSE=$(echo "$INITIALIZE_REQUEST" | docker run -i --rm "$IMAGE" | grep '"id":1' | head -1)
 
 echo "Response: $INIT_RESPONSE"
 
@@ -33,7 +35,8 @@ fi
 
 echo ""
 echo "Step 2: Sending tools/list request..."
-TOOLS_RESPONSE=$(echo -e "$INITIALIZE_REQUEST\n$TOOLS_LIST_REQUEST" | docker run -i --rm "$IMAGE" | tail -1)
+# Same filter: pick the response matching id=2 (the tools/list request).
+TOOLS_RESPONSE=$(echo -e "$INITIALIZE_REQUEST\n$TOOLS_LIST_REQUEST" | docker run -i --rm "$IMAGE" | grep '"id":2' | head -1)
 
 echo "Response: $TOOLS_RESPONSE"
 
