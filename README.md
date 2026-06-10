@@ -4,7 +4,7 @@
 
 A community library of self-contained, deterministic "flakes" — Docker Compose recipes that turn *any* MCP server (npx/uvx packages, unbuilt GitHub repos, raw scripts) into an isolated, prebuilt, instantly runnable container.
 
-**Status**: ✅ **Proven feasible** — 22 working flakes built with 100% success rate
+**Status**: ✅ **Proven feasible** — 25 working flakes built with 100% success rate
 
 ## What is this?
 
@@ -37,17 +37,22 @@ docker compose run --rm mcp-filesystem
 
 ### See what's available
 
-We have 22 working flakes across diverse categories:
+We have 25 working flakes across diverse categories:
 
 **Developer Tools**: filesystem, git, github, fetch, sequentialthinking, everything  
 **Databases**: postgres, sqlite  
 **APIs**: spotify, metmuseum, open-library, mcp-market-data  
 **Search/Discovery**: a2asearch, clirank  
-**Knowledge**: memory, aesthetics-wiki, shahnameh  
+**Knowledge**: memory, aesthetics-wiki-mcp, shahnameh-mcp-server  
 **Utilities**: time, astronomy-oracle, mcp-compress  
-**Creative**: excalidraw-architect, claude-terminal
+**Creative**: excalidraw-architect-mcp, claude-terminal
 
 Browse: [`flakes/`](flakes/)
+
+**New Python Servers** (see [PYTHON_SERVERS_REPORT.md](PYTHON_SERVERS_REPORT.md)):
+- **aesthetics-wiki-mcp** - Search & discover visual aesthetics (PyPI published)
+- **excalidraw-architect-mcp** - Architecture diagram generation with knowledge graph (PyPI + extras)
+- **shahnameh-mcp-server** - Persian epic poem access (source build)
 
 ## Architecture
 
@@ -81,9 +86,11 @@ We've validated **7 distinct build patterns** across 22 real servers:
 | Official monorepo (TypeScript) | 6 | 60-90s | filesystem, memory, git |
 | Single-repo TypeScript | 6 | 30-60s | github, metmuseum, open-library |
 | Published npm packages | 3 | 5-10s | a2asearch, clirank, astronomy-oracle |
-| Python with uv | 3 | 8-15s | fetch, time, spotify |
+| Python PyPI published | 2 | 8-12s | aesthetics-wiki-mcp, excalidraw-architect-mcp |
+| Python source build | 1 | 15-20s | shahnameh-mcp-server |
+| Python with uv (other) | 3 | 8-15s | fetch, time, spotify |
 | pnpm-based | 1 | 35s | metmuseum |
-| API-key-free | 12 | - | filesystem, memory, open-library |
+| API-key-free | 15 | - | filesystem, memory, open-library, aesthetics-wiki-mcp |
 | API-key-required | 10 | - | github, spotify, postgres |
 
 All documented in [PATTERNS.md](PATTERNS.md).
@@ -140,7 +147,7 @@ Tests:
 2. tools/list returns expected tools
 3. Server responds correctly to stdio
 
-**Current pass rate**: 22/22 (100%)
+**Current pass rate**: 25/25 (100%)
 
 ## Contributing (Coming Soon)
 
@@ -158,7 +165,8 @@ We've proven with 6 parallel agents that:
 
 ### Phase 1: Foundation (Current)
 - ✅ Runner base images
-- ✅ 22 seed flakes with diverse patterns
+- ✅ 25 seed flakes with diverse patterns
+- ✅ 3 Python MCP servers (PyPI + source build patterns)
 - ✅ Smoke test harness
 - ✅ Pattern documentation
 - ✅ Proof of agent parallelism
