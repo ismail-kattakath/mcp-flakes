@@ -10,6 +10,7 @@ interface ProcessArgs {
   limit: number;
   repo?: string;
   dryRun: boolean;
+  noPr: boolean;
   skipFilter: boolean;
 }
 
@@ -52,6 +53,7 @@ async function cmdProcess(args: ProcessArgs): Promise<void> {
     try {
       const outcome = await runPipeline(parsed.repo, parsed.id, {
         dryRun: args.dryRun,
+        noPr: args.noPr,
         skipFilter: args.skipFilter,
         subpath: parsed.subpath,
       });
@@ -80,6 +82,7 @@ async function cmdProcess(args: ProcessArgs): Promise<void> {
     try {
       const outcome = await runPipeline(item.repo, item.id, {
         dryRun: args.dryRun,
+        noPr: args.noPr,
         skipFilter: args.skipFilter,
         subpath: item.subpath,
       });
@@ -116,15 +119,17 @@ function parseProcessArgs(args: string[]): ProcessArgs {
   let limit = 10;
   let repo: string | undefined;
   let dryRun = false;
+  let noPr = false;
   let skipFilter = false;
   for (let i = 0; i < args.length; i++) {
     const a = args[i];
     if (a === '--limit') limit = parseInt(args[++i] ?? '10', 10);
     else if (a === '--repo') repo = args[++i];
     else if (a === '--dry-run') dryRun = true;
+    else if (a === '--no-pr') noPr = true;
     else if (a === '--skip-filter') skipFilter = true;
   }
-  return { limit, repo, dryRun, skipFilter };
+  return { limit, repo, dryRun, noPr, skipFilter };
 }
 
 main().catch((e) => {

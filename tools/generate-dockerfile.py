@@ -4,11 +4,11 @@ Dockerfile Generator for mcp-flakes
 Generates Dockerfile from flake.yaml manifest using templates
 """
 
+import re
 import sys
 import yaml
 import json
 from pathlib import Path
-from string import Template
 
 # Runner image mapping
 RUNNER_IMAGES = {
@@ -50,12 +50,14 @@ def detect_pattern(manifest):
     return "single-ts"
 
 def render_template(template_path, context):
-    """Render Dockerfile template with context"""
+    """Render Dockerfile template with context. Templates use {{var}} syntax."""
     with open(template_path) as f:
         template_content = f.read()
-
-    template = Template(template_content)
-    return template.safe_substitute(context)
+    return re.sub(
+        r"\{\{(\w+)\}\}",
+        lambda m: str(context.get(m.group(1), m.group(0))),
+        template_content,
+    )
 
 def format_entrypoint(entrypoint):
     """Format entrypoint list as JSON array for Dockerfile"""

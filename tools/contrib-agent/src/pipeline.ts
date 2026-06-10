@@ -19,6 +19,8 @@ export type Outcome =
 export interface PipelineOpts {
   /** Skip validate + pr; print manifest YAML to stdout. Cost-only path: synthesize. */
   dryRun?: boolean;
+  /** Run synthesize + validate but skip pr (no branch/commit/push). For local iteration. */
+  noPr?: boolean;
   /** Bypass pre-LLM filter. Useful for testing the agent against known-skip URLs. */
   skipFilter?: boolean;
   /** Subpath inside the repo when this candidate covers one server of a monorepo. */
@@ -113,6 +115,17 @@ export async function runPipeline(
     const needsHumanReason = needsHuman
       ? `validate failed at ${v.stage}: ${(v.errors ?? []).join('; ')}`
       : undefined;
+
+    if (opts.noPr) {
+      log.info('pipeline.no_pr', {
+        flakeDir: v.flakeDir,
+        validateOk: v.ok,
+        stage: v.stage,
+      });
+      return needsHuman
+        ? { kind: 'needs-human', reason: needsHumanReason ?? 'validate failed' }
+        : { kind: 'dry-run', tokensUsed: s.tokensUsed };
+    }
 
     let pr_url: string | undefined;
     try {
