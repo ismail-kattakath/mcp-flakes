@@ -1,0 +1,66 @@
+name: firebase-mcp
+version: 1.4.9
+description: Firebase MCP server for Auth, Firestore, and Storage operations
+author: gannonh
+repository: https://github.com/gannonh/firebase-mcp
+license: MIT
+language: typescript
+
+inputs:
+  - name: FIREBASE_PROJECT_ID
+    description: Firebase project ID
+    required: true
+    secret: false
+    example: my-firebase-project
+
+  - name: FIREBASE_CREDENTIALS
+    description: Path to Firebase service account JSON key file
+    required: true
+    secret: true
+    example: /config/firebase-service-account.json
+
+  - name: FIREBASE_AUTH_EMULATOR_HOST
+    description: Firebase Auth emulator host (for testing)
+    required: false
+    secret: false
+    example: localhost:9099
+
+  - name: FIRESTORE_EMULATOR_HOST
+    description: Firestore emulator host (for testing)
+    required: false
+    secret: false
+    example: localhost:8080
+
+  - name: FIREBASE_STORAGE_EMULATOR_HOST
+    description: Firebase Storage emulator host (for testing)
+    required: false
+    secret: false
+    example: localhost:9199
+
+outputs:
+  - name: MCP_SERVER
+    description: Firebase MCP server endpoint
+    value: stdio://firebase-mcp
+
+tools:
+  - auth_create_user: Create Firebase Authentication user
+  - auth_get_user: Get user by UID or email
+  - auth_update_user: Update user properties
+  - auth_delete_user: Delete user account
+  - auth_list_users: List all users
+  - firestore_get: Get document from Firestore
+  - firestore_set: Set document in Firestore
+  - firestore_update: Update document fields
+  - firestore_delete: Delete document
+  - firestore_query: Query collection with filters
+  - storage_upload: Upload file to Cloud Storage
+  - storage_download: Download file from Storage
+  - storage_delete: Delete file from Storage
+  - storage_list: List files in bucket
+
+categories:
+  - database
+  - authentication
+  - storage
+  - backend-as-a-service
+  - popular

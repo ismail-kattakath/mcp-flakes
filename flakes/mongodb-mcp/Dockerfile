@@ -18,12 +18,10 @@ FROM node:20-slim
 
 WORKDIR /app
 
-# Copy built artifacts
+# Copy built artifacts and dependencies
 COPY --from=builder /app/build ./build
 COPY --from=builder /app/package.json ./package.json
-
-# Install only production dependencies
-RUN npm install --production
+COPY --from=builder /app/node_modules ./node_modules
 
 # Set Node to production mode
 ENV NODE_ENV=production

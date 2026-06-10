@@ -1,0 +1,61 @@
+name: bigquery-mcp
+version: 0.3.2
+description: Model Context Protocol server for Google BigQuery with schema inspection and query execution
+author: Lucas Hild
+repository: https://github.com/LucasHild/mcp-server-bigquery
+license: MIT
+language: python
+
+inputs:
+  - name: BIGQUERY_PROJECT
+    description: GCP project ID
+    required: true
+    secret: false
+    example: my-gcp-project
+
+  - name: BIGQUERY_LOCATION
+    description: GCP location/region
+    required: true
+    secret: false
+    example: us-central1
+
+  - name: BIGQUERY_DATASETS
+    description: Comma-separated list of datasets to consider (empty = all)
+    required: false
+    secret: false
+    example: dataset1,dataset2
+
+  - name: BIGQUERY_KEY_FILE
+    description: Path to GCP service account JSON key file
+    required: false
+    secret: true
+    example: /config/gcp-service-account.json
+
+  - name: BIGQUERY_TIMEOUT
+    description: Maximum query execution time in seconds
+    required: false
+    secret: false
+    example: "300"
+
+  - name: GOOGLE_APPLICATION_CREDENTIALS
+    description: Path to GCP credentials (alternative to key file)
+    required: false
+    secret: true
+    example: /config/credentials.json
+
+outputs:
+  - name: MCP_SERVER
+    description: BigQuery MCP server endpoint
+    value: stdio://mcp-server-bigquery
+
+tools:
+  - execute_query: Execute SQL queries using BigQuery dialect
+  - list_tables: List all tables in specified datasets
+  - describe_table: Get table schema and metadata
+
+categories:
+  - database
+  - data-warehouse
+  - analytics
+  - enterprise
+  - google-cloud

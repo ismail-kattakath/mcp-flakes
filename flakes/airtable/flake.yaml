@@ -1,0 +1,61 @@
+name: airtable
+version: 1.13.0
+description: Airtable MCP Server - Database integration with schema inspection, read and write capabilities for bases and tables
+language: typescript
+packageManager: npm
+
+upstream:
+  repo: https://github.com/domdomegg/airtable-mcp-server
+  commit: 7e763ed
+  license: MIT
+
+tools:
+  - name: list_bases
+    description: List all accessible Airtable bases
+  - name: list_tables
+    description: List all tables in a specific base with schema
+  - name: list_records
+    description: List records from a table with optional filtering
+  - name: search_records
+    description: Search for records containing specific text
+  - name: create_records
+    description: Create one or more records in a table
+  - name: update_records
+    description: Update existing records by ID
+  - name: delete_records
+    description: Delete records by ID
+  - name: get_record
+    description: Get a specific record by ID
+
+env:
+  required:
+    - name: AIRTABLE_ACCESS_TOKEN
+      description: Airtable Personal Access Token from Account settings
+      example: "patXXXXXXXXXXXXXX.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      sensitive: true
+
+build:
+  context: .
+  dockerfile: Dockerfile
+
+runtime:
+  entrypoint: ["node", "dist/index.js"]
+
+notes: |
+  - Requires Airtable Personal Access Token from https://airtable.com/create/tokens
+  - Token needs appropriate scopes: data.records:read, data.records:write, schema.bases:read
+  - Supports schema inspection (bases, tables, fields, views)
+  - Full CRUD operations on records
+  - Search across text fields
+  - Filter records with Airtable formulas
+  - Pagination handled automatically
+  - Field types: text, number, attachment, checkbox, date, select, etc.
+  - Respects base permissions (owner, editor, commenter, read-only)
+
+compliance:
+  attribution_file: ATTRIBUTION.md
+  license_verified: true
+  license_compatible: true
+  copyright_holders:
+    - "Adam Jones (domdomegg)"
+  upstream_license_url: https://github.com/domdomegg/airtable-mcp-server/blob/master/LICENSE

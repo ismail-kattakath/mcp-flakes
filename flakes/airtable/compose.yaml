@@ -1,0 +1,10 @@
+services:
+  airtable:
+    image: mcp/airtable:1.13.0
+    build:
+      context: .
+      dockerfile: Dockerfile
+    stdin_open: true
+    environment:
+      - AIRTABLE_ACCESS_TOKEN=${AIRTABLE_ACCESS_TOKEN}
+    entrypoint: ["node", "dist/index.js"]

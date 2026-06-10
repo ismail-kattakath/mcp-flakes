@@ -1,0 +1,17 @@
+services:
+  firebase-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mcp-flakes/firebase-mcp:latest
+    container_name: firebase-mcp
+    environment:
+      - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID}
+      - GOOGLE_APPLICATION_CREDENTIALS=${FIREBASE_CREDENTIALS:-/config/firebase-service-account.json}
+      - FIREBASE_AUTH_EMULATOR_HOST=${FIREBASE_AUTH_EMULATOR_HOST:-}
+      - FIRESTORE_EMULATOR_HOST=${FIRESTORE_EMULATOR_HOST:-}
+      - FIREBASE_STORAGE_EMULATOR_HOST=${FIREBASE_STORAGE_EMULATOR_HOST:-}
+    volumes:
+      - ${FIREBASE_CREDENTIALS:-./firebase-service-account.json}:/config/firebase-service-account.json:ro
+    stdin_open: true
+    tty: true

@@ -1,0 +1,18 @@
+services:
+  bigquery-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mcp-flakes/bigquery-mcp:latest
+    container_name: bigquery-mcp
+    environment:
+      - BIGQUERY_PROJECT=${BIGQUERY_PROJECT}
+      - BIGQUERY_LOCATION=${BIGQUERY_LOCATION}
+      - BIGQUERY_DATASETS=${BIGQUERY_DATASETS:-}
+      - BIGQUERY_KEY_FILE=${BIGQUERY_KEY_FILE:-/config/gcp-service-account.json}
+      - BIGQUERY_TIMEOUT=${BIGQUERY_TIMEOUT:-300}
+      - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS:-/config/gcp-service-account.json}
+    volumes:
+      - ${BIGQUERY_KEY_FILE:-./gcp-service-account.json}:/config/gcp-service-account.json:ro
+    stdin_open: true
+    tty: true

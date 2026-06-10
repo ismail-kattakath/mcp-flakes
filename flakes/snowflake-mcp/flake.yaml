@@ -1,0 +1,77 @@
+name: snowflake-mcp
+version: 1.4.2
+description: "[DEPRECATED] MCP server for Snowflake with Cortex AI, object management, and SQL orchestration (use official Snowflake MCP instead)"
+author: Snowflake Labs (Carlos Serrano, Jason Summer, Tyler White)
+repository: https://github.com/Snowflake-Labs/mcp
+license: Apache-2.0
+language: python
+
+inputs:
+  - name: SNOWFLAKE_ACCOUNT
+    description: Snowflake account identifier
+    required: true
+    secret: false
+    example: myorg-myaccount
+
+  - name: SNOWFLAKE_USER
+    description: Snowflake username
+    required: true
+    secret: false
+    example: myuser
+
+  - name: SNOWFLAKE_PASSWORD
+    description: Snowflake password
+    required: true
+    secret: true
+    example: secure-password
+
+  - name: SNOWFLAKE_WAREHOUSE
+    description: Snowflake warehouse name
+    required: false
+    secret: false
+    example: COMPUTE_WH
+
+  - name: SNOWFLAKE_DATABASE
+    description: Default database name
+    required: false
+    secret: false
+    example: MY_DATABASE
+
+  - name: SNOWFLAKE_SCHEMA
+    description: Default schema name
+    required: false
+    secret: false
+    example: PUBLIC
+
+  - name: SNOWFLAKE_ROLE
+    description: Snowflake role
+    required: false
+    secret: false
+    example: SYSADMIN
+
+  - name: SNOWFLAKE_CONFIG_PATH
+    description: Path to services configuration YAML
+    required: false
+    secret: false
+    example: /config/services.yaml
+
+outputs:
+  - name: MCP_SERVER
+    description: Snowflake MCP server endpoint
+    value: stdio://snowflake-labs-mcp
+
+tools:
+  - cortex_search: Query unstructured data with Cortex Search
+  - cortex_analyst: Query structured data with semantic modeling
+  - cortex_agent: Orchestrate across data retrieval
+  - execute_sql: Run SQL statements with permissions
+  - create_object: Create Snowflake objects
+  - drop_object: Drop Snowflake objects
+  - query_semantic_view: Query semantic views
+
+categories:
+  - database
+  - data-warehouse
+  - enterprise
+  - deprecated
+  - official
