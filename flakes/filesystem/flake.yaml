@@ -1,0 +1,29 @@
+name: filesystem
+upstream:
+  repo: https://github.com/modelcontextprotocol/servers
+  commit: 275175cda17ca9c49920ceed2bcf27e12e59f8b2
+  license: MIT
+  subpath: src/filesystem
+runner: node
+build:
+  install: npm ci
+  build: npm run build
+  entrypoint: ["node", "dist/index.js"]
+transport: stdio
+env:
+  - name: ALLOWED_DIRECTORIES
+    required: false
+    secret: false
+    description: Comma-separated list of directories the server can access
+tools:
+  - read_file
+  - read_multiple_files
+  - write_file
+  - edit_file
+  - create_directory
+  - list_directory
+  - move_file
+  - search_files
+  - get_file_info
+  - list_allowed_directories
+publish_image: true
