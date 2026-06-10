@@ -57,7 +57,7 @@ on:
 jobs:
   pr:
     name: open-pr
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, mcp-flakes]
     permissions:
       contents: write
       pull-requests: write
