@@ -1,0 +1,13 @@
+services:
+  mcp-mcp-searxng:
+    # Prebuilt image (pulled first) - published by CI.
+    image: ghcr.io/mcp-flakes/mcp-searxng:latest
+
+    # Source-build fallback - used when pull fails.
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    # stdio transport — no ports exposed.
+    stdin_open: true
+    tty: false
