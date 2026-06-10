@@ -1,0 +1,95 @@
+name: "Parse flake-request issue body"
+description: "Extract and normalize GitHub repo URLs from a flake-request issue body."
+inputs:
+  issue_body:
+    description: "The raw issue body to parse."
+    required: true
+outputs:
+  repos:
+    description: "Newline-separated, normalized, deduplicated GitHub URLs."
+    value: ${{ steps.parse.outputs.repos }}
+  repos_json:
+    description: "JSON array of normalized, deduplicated GitHub URLs (for matrix strategy)."
+    value: ${{ steps.parse.outputs.repos_json }}
+  count:
+    description: "Number of URLs parsed."
+    value: ${{ steps.parse.outputs.count }}
+runs:
+  using: "composite"
+  steps:
+    - id: parse
+      shell: bash
+      env:
+        ISSUE_BODY: ${{ inputs.issue_body }}
+      run: |
+        set -euo pipefail
+
+        # Write the issue body to a tempfile preserving newlines (printf, not echo).
+        body_file="$(mktemp)"
+        printf '%s' "$ISSUE_BODY" > "$body_file"
+
+        raw_file="$(mktemp)"
+        normalized_file="$(mktemp)"
+
+        # Extract candidate URLs. We use grep -oE to pull only the matched URL portion,
+        # which handles URLs embedded inline as well as on their own line.
+        # Pattern: https?://github.com/<owner>/<name>(#<subpath>)?
+        # owner/name cannot contain '/', whitespace, or '#'.
+        grep -oE 'https?://github\.com/[^/[:space:]]+/[^/[:space:]#]+(#[^[:space:]]+)?' \
+          "$body_file" > "$raw_file" || true
+
+        # Normalize each URL:
+        #   - lowercase scheme + host + owner + name (NOT the subpath fragment)
+        #   - strip trailing slash on the path portion
+        #   - strip a trailing .git suffix on the name
+        # Preserve #subpath fragment as-is (paths can be case-sensitive).
+        while IFS= read -r url; do
+          [ -z "$url" ] && continue
+
+          # Split off the fragment (everything after the first '#').
+          if [[ "$url" == *"#"* ]]; then
+            base="${url%%#*}"
+            frag="#${url#*#}"
+          else
+            base="$url"
+            frag=""
+          fi
+
+          # Strip trailing slash from base.
+          base="${base%/}"
+
+          # Strip trailing .git on the name segment.
+          if [[ "$base" == *.git ]]; then
+            base="${base%.git}"
+          fi
+
+          # Lowercase the base (scheme + host + owner/name).
+          base_lc="$(printf '%s' "$base" | tr '[:upper:]' '[:lower:]')"
+
+          printf '%s%s\n' "$base_lc" "$frag" >> "$normalized_file"
+        done < "$raw_file"
+
+        # Dedupe (sort -u). Preserves one entry per unique normalized URL.
+        if [ -s "$normalized_file" ]; then
+          sort -u "$normalized_file" > "${normalized_file}.sorted"
+          mv "${normalized_file}.sorted" "$normalized_file"
+        fi
+
+        count=$(wc -l < "$normalized_file" | tr -d ' ')
+
+        # Build a JSON array from the normalized URLs.
+        repos_json="[]"
+        if [ -s "$normalized_file" ]; then
+          repos_json=$(jq -Rcn '[inputs | select(length > 0)]' < "$normalized_file")
+        fi
+
+        # Emit multi-line `repos`, JSON `repos_json`, and scalar `count` to GITHUB_OUTPUT.
+        {
+          echo "repos<<EOF"
+          cat "$normalized_file"
+          echo "EOF"
+          echo "repos_json=${repos_json}"
+          echo "count=${count}"
+        } >> "$GITHUB_OUTPUT"
+
+        echo "Parsed ${count} URL(s)."

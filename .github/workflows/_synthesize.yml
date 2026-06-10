@@ -1,0 +1,101 @@
+# Reusable workflow: synthesize a flake.yaml manifest for a repo.
+#
+# NOTE: This step runs the real MCP-server analysis agent against Bedrock and
+# typically takes 1-3 minutes per repo (longer for monorepo subpaths). The
+# contrib-agent CLI streams progress to stderr; stdout is exactly one JSON line
+# matching `{ ok, manifest, workdir, error?, tokensUsed }`.
+name: _synthesize
+
+on:
+  workflow_call:
+    inputs:
+      repo:
+        description: 'Upstream repo slug or URL (owner/name or https://github.com/owner/name).'
+        required: true
+        type: string
+      subpath:
+        description: 'Optional monorepo subpath (e.g. servers/foo).'
+        required: false
+        type: string
+        default: ''
+    secrets:
+      aws_bearer_token_bedrock:
+        description: 'Bedrock bearer token used by Claude Code SDK for synthesis.'
+        required: true
+    outputs:
+      ok:
+        description: 'Boolean string: whether synthesis succeeded.'
+        value: ${{ jobs.synthesize.outputs.ok }}
+      manifest:
+        description: 'YAML manifest produced by the agent (single-line escaped).'
+        value: ${{ jobs.synthesize.outputs.manifest }}
+      workdir:
+        description: 'Path to the temporary workdir for cleanup.'
+        value: ${{ jobs.synthesize.outputs.workdir }}
+      tokens_used:
+        description: 'Total tokens consumed by the synthesize agent.'
+        value: ${{ jobs.synthesize.outputs.tokens_used }}
+      error:
+        description: 'Error string if ok=false.'
+        value: ${{ jobs.synthesize.outputs.error }}
+
+jobs:
+  synthesize:
+    name: synthesize
+    runs-on: ubuntu-latest
+    env:
+      CLAUDE_CODE_USE_BEDROCK: '1'
+      AWS_REGION: us-east-2
+      AWS_BEARER_TOKEN_BEDROCK: ${{ secrets.aws_bearer_token_bedrock }}
+      ANTHROPIC_DEFAULT_SONNET_MODEL: us.anthropic.claude-sonnet-4-5-20250929-v1:0
+    outputs:
+      ok: ${{ steps.run.outputs.ok }}
+      manifest: ${{ steps.run.outputs.manifest }}
+      workdir: ${{ steps.run.outputs.workdir }}
+      tokens_used: ${{ steps.run.outputs.tokens_used }}
+      error: ${{ steps.run.outputs.error }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Build contrib-agent
+        run: cd tools/contrib-agent && npm ci --silent && npm run build
+
+      - name: Run contrib-agent synthesize
+        id: run
+        env:
+          REPO_INPUT: ${{ inputs.repo }}
+          SUBPATH_INPUT: ${{ inputs.subpath }}
+        run: |
+          set -euo pipefail
+          INPUT=$(jq -nc \
+            --arg repo "$REPO_INPUT" \
+            --arg subpath "$SUBPATH_INPUT" \
+            '{repo:$repo} + (if $subpath == "" then {} else {subpath:$subpath} end)')
+
+          echo "synthesize input: $INPUT" >&2
+          RESULT=$(printf '%s' "$INPUT" | node tools/contrib-agent/dist/index.js synthesize)
+          echo "synthesize result (first 500 chars): ${RESULT:0:500}" >&2
+
+          OK=$(printf '%s' "$RESULT" | jq -r '.ok // false')
+          WORKDIR=$(printf '%s' "$RESULT" | jq -r '.workdir // ""')
+          TOKENS=$(printf '%s' "$RESULT" | jq -r '.tokensUsed // 0')
+          ERROR=$(printf '%s' "$RESULT" | jq -r '.error // ""')
+          MANIFEST=$(printf '%s' "$RESULT" | jq -r '.manifest // ""')
+
+          echo "ok=$OK" >> "$GITHUB_OUTPUT"
+          echo "workdir=$WORKDIR" >> "$GITHUB_OUTPUT"
+          echo "tokens_used=$TOKENS" >> "$GITHUB_OUTPUT"
+          {
+            echo "error<<__EOF__"
+            printf '%s\n' "$ERROR"
+            echo "__EOF__"
+          } >> "$GITHUB_OUTPUT"
+          {
+            echo "manifest<<__EOF__"
+            printf '%s\n' "$MANIFEST"
+            echo "__EOF__"
+          } >> "$GITHUB_OUTPUT"

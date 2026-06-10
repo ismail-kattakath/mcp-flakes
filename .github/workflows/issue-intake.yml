@@ -1,0 +1,128 @@
+name: Flake Request Intake
+
+on:
+  issues:
+    types:
+      - labeled
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  intake:
+    if: github.event.label.name == 'flake-request'
+    runs-on: ubuntu-latest
+    outputs:
+      repos_json: ${{ steps.parse.outputs.repos_json }}
+      count: ${{ steps.parse.outputs.count }}
+      branch: ${{ steps.branch.outputs.name }}
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Parse issue body
+        id: parse
+        uses: ./.github/actions/parse-issue
+        with:
+          issue_body: ${{ github.event.issue.body }}
+
+      - name: Comment and exit if no URLs
+        if: steps.parse.outputs.count == '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          gh issue comment "$ISSUE_NUMBER" \
+            --repo "$REPO" \
+            --body 'No valid GitHub URLs found in the issue body. Please format as one URL per line, e.g. `https://github.com/owner/name`.'
+
+      - name: Create branch from main (idempotent)
+        if: steps.parse.outputs.count != '0'
+        id: branch
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          branch="flake-request-issue-${ISSUE_NUMBER}"
+          echo "name=${branch}" >> "$GITHUB_OUTPUT"
+
+          # Configure a bot identity for the (potentially empty) branch push.
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # If the remote branch already exists, do nothing.
+          if git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
+            echo "Branch ${branch} already exists on origin; skipping create."
+            echo "created=false" >> "$GITHUB_OUTPUT"
+          else
+            git checkout -b "$branch"
+            git push origin "$branch"
+            echo "created=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Comment acknowledgement on issue
+        if: steps.parse.outputs.count != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+          SERVER_URL: ${{ github.server_url }}
+          BRANCH: ${{ steps.branch.outputs.name }}
+          REPOS: ${{ steps.parse.outputs.repos }}
+          COUNT: ${{ steps.parse.outputs.count }}
+        run: |
+          set -euo pipefail
+
+          branch_url="${SERVER_URL}/${REPO}/tree/${BRANCH}"
+          comment_file="$(mktemp)"
+
+          {
+            printf 'Thanks! Created branch [`%s`](%s) for this request.\n\n' "$BRANCH" "$branch_url"
+            printf 'Parsed %s URL(s):\n\n' "$COUNT"
+
+            # Bulleted list, capped at 20.
+            cap=20
+            shown=0
+            total="$COUNT"
+            while IFS= read -r url; do
+              [ -z "$url" ] && continue
+              if [ "$shown" -ge "$cap" ]; then
+                break
+              fi
+              printf -- '- %s\n' "$url"
+              shown=$((shown + 1))
+            done <<< "$REPOS"
+
+            if [ "$total" -gt "$cap" ]; then
+              remaining=$((total - cap))
+              printf '\n…and %s more\n' "$remaining"
+            fi
+
+            printf '\nPipeline dispatch starting — each repo will be processed through expand → filter → dedup → synthesize → validate → open PR.\n'
+          } > "$comment_file"
+
+          gh issue comment "$ISSUE_NUMBER" \
+            --repo "$REPO" \
+            --body-file "$comment_file"
+
+  dispatch:
+    needs: intake
+    if: needs.intake.outputs.count != '0'
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        repo: ${{ fromJSON(needs.intake.outputs.repos_json) }}
+    uses: ./.github/workflows/_flake-pipeline.yml
+    with:
+      repo: ${{ matrix.repo }}
+      branch_name: ${{ needs.intake.outputs.branch }}
+      issue_number: ${{ github.event.issue.number }}
+    secrets:
+      aws_bearer_token_bedrock: ${{ secrets.AWS_BEARER_TOKEN_BEDROCK }}

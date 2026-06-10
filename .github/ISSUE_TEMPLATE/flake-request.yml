@@ -1,0 +1,37 @@
+name: "Request an MCP flake"
+description: "Ask the contrib-agent to package an MCP server as a flake."
+title: "[flake-request] "
+labels:
+  - flake-request
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form to request one or more MCP servers be packaged as mcp-flakes.
+        Paste GitHub URLs (one per line) of the repositories you'd like to see flaked.
+  - type: textarea
+    id: repos
+    attributes:
+      label: GitHub URLs (one per line)
+      description: |
+        Paste one GitHub URL per line. To target a subpath inside a monorepo, append `#path/to/subdir`.
+      placeholder: |
+        https://github.com/owner/name
+        https://github.com/owner/monorepo#src/subpath
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: use_case
+    attributes:
+      label: What will you use this for?
+      description: Optional — a short description of how you plan to use these flakes.
+    validations:
+      required: false
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else?
+      description: Optional — additional context, version constraints, known quirks, etc.
+    validations:
+      required: false

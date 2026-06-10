@@ -9,7 +9,8 @@ function emit(level: string, msg: string, extra?: Extra): void {
     ...(extra ?? {}),
     ts: new Date().toISOString(),
   });
-  console.log(line);
+  // Stderr so subcommand stdout stays pure JSON for piping in workflow steps.
+  process.stderr.write(line + '\n');
 }
 
 export const log = {

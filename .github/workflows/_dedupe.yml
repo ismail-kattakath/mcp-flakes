@@ -1,0 +1,61 @@
+# Reusable workflow: dedupe candidate against existing flakes.
+# Pipes a JSON candidate to `contrib-agent dedup` and surfaces the kind /
+# auto-merge eligibility for downstream stages.
+name: _dedupe
+
+on:
+  workflow_call:
+    inputs:
+      candidate:
+        description: 'JSON string passed verbatim to `contrib-agent dedup` on stdin.'
+        required: true
+        type: string
+    outputs:
+      kind:
+        description: 'Dedup kind: new | identical | upgrade | conflict (per DedupResult).'
+        value: ${{ jobs.dedupe.outputs.kind }}
+      auto_merge_eligible:
+        description: 'Boolean string: whether the candidate is safe to auto-merge.'
+        value: ${{ jobs.dedupe.outputs.auto_merge_eligible }}
+      result_json:
+        description: 'Raw single-line JSON DedupResult from contrib-agent.'
+        value: ${{ jobs.dedupe.outputs.result_json }}
+
+jobs:
+  dedupe:
+    name: dedupe
+    runs-on: ubuntu-latest
+    outputs:
+      kind: ${{ steps.run.outputs.kind }}
+      auto_merge_eligible: ${{ steps.run.outputs.auto_merge_eligible }}
+      result_json: ${{ steps.run.outputs.result_json }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Build contrib-agent
+        run: cd tools/contrib-agent && npm ci --silent && npm run build
+
+      - name: Run contrib-agent dedup
+        id: run
+        env:
+          CANDIDATE_JSON: ${{ inputs.candidate }}
+        run: |
+          set -euo pipefail
+          RESULT=$(printf '%s' "$CANDIDATE_JSON" | node tools/contrib-agent/dist/index.js dedup)
+          echo "raw result: $RESULT" >&2
+
+          KIND=$(printf '%s' "$RESULT" | jq -r '.kind // empty')
+          AME=$(printf '%s' "$RESULT" | jq -r '.auto_merge_eligible // false')
+
+          echo "kind=$KIND" >> "$GITHUB_OUTPUT"
+          echo "auto_merge_eligible=$AME" >> "$GITHUB_OUTPUT"
+          # Emit single-line JSON for downstream consumers
+          {
+            echo "result_json<<__EOF__"
+            printf '%s\n' "$RESULT"
+            echo "__EOF__"
+          } >> "$GITHUB_OUTPUT"

@@ -1,0 +1,419 @@
+# Reusable orchestrator for a single upstream repo (optionally a monorepo
+# subpath via owner/name#subpath).
+#
+# Job graph (simplified):
+#   expand-and-filter → resolve-commit → build-pre-candidate → dedup-pre
+#     → dedup-pre-gate → analyze ─┐
+#                                  ├→ synthesize → validate → compute-flake-name
+#                                  │     ├→ build-post-candidate → dedup-post   │
+#                                  │     └────────────────────────→ build-image ─┤
+#                                  └──────────────────────────────→ open-pr ─────┤
+#                                                                        report ←┘
+#
+# v1 punts monorepo matrix dispatch: if a monorepo is detected and the caller
+# did not specify a subpath, we comment on the issue (if provided) and exit
+# cleanly. Per-subpath issues should be opened by the human.
+name: _flake-pipeline
+
+on:
+  workflow_call:
+    inputs:
+      repo:
+        description: 'Upstream repo: owner/name, full URL, or owner/name#subpath for monorepos.'
+        required: true
+        type: string
+      branch_name:
+        description: 'Branch to push the resulting PR to.'
+        required: true
+        type: string
+      issue_number:
+        description: 'Optional GitHub issue number to comment status updates on.'
+        required: false
+        type: number
+        default: 0
+    secrets:
+      aws_bearer_token_bedrock:
+        description: 'Bedrock bearer token forwarded to the synthesize stage.'
+        required: true
+
+jobs:
+  expand-and-filter:
+    name: expand + filter
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    outputs:
+      monorepo: ${{ steps.run.outputs.monorepo }}
+      subpaths_json: ${{ steps.run.outputs.subpaths_json }}
+      filter_pass: ${{ steps.run.outputs.filter_pass }}
+      license: ${{ steps.run.outputs.license }}
+      default_branch: ${{ steps.run.outputs.default_branch }}
+      repo_slug: ${{ steps.run.outputs.repo_slug }}
+      subpath: ${{ steps.run.outputs.subpath }}
+      continue: ${{ steps.run.outputs.continue }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Build contrib-agent
+        run: cd tools/contrib-agent && npm ci --silent && npm run build
+
+      - name: Parse repo input + run expand and filter
+        id: run
+        env:
+          REPO_INPUT: ${{ inputs.repo }}
+        run: |
+          set -euo pipefail
+
+          # Strip leading https://github.com/ and trailing .git, isolate subpath after #.
+          RAW="$REPO_INPUT"
+          RAW="${RAW#https://github.com/}"
+          RAW="${RAW%.git}"
+          if [[ "$RAW" == *"#"* ]]; then
+            SLUG="${RAW%%#*}"
+            SUBPATH="${RAW#*#}"
+          else
+            SLUG="$RAW"
+            SUBPATH=""
+          fi
+          echo "repo_slug=$SLUG" >> "$GITHUB_OUTPUT"
+          echo "subpath=$SUBPATH" >> "$GITHUB_OUTPUT"
+
+          # expand
+          EXPAND_INPUT=$(jq -nc --arg repo "$SLUG" '{repo:$repo}')
+          EXPAND_RESULT=$(printf '%s' "$EXPAND_INPUT" | node tools/contrib-agent/dist/index.js expand)
+          echo "expand: $EXPAND_RESULT" >&2
+
+          KIND=$(printf '%s' "$EXPAND_RESULT" | jq -r '.kind // "single"')
+          SUBPATHS=$(printf '%s' "$EXPAND_RESULT" | jq -c '.subpaths // []')
+
+          MONOREPO=false
+          if [ "$KIND" = "monorepo" ]; then
+            MONOREPO=true
+          fi
+          echo "monorepo=$MONOREPO" >> "$GITHUB_OUTPUT"
+          echo "subpaths_json=$SUBPATHS" >> "$GITHUB_OUTPUT"
+
+          # If monorepo and caller didn't pick a subpath, bail (v1).
+          if [ "$MONOREPO" = "true" ] && [ -z "$SUBPATH" ]; then
+            echo "continue=false" >> "$GITHUB_OUTPUT"
+            echo "filter_pass=false" >> "$GITHUB_OUTPUT"
+            echo "license=" >> "$GITHUB_OUTPUT"
+            echo "default_branch=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # filter
+          FILTER_INPUT=$(jq -nc \
+            --arg repo "$SLUG" \
+            --arg subpath "$SUBPATH" \
+            '{repo:$repo} + (if $subpath == "" then {} else {subpath:$subpath} end)')
+          FILTER_RESULT=$(printf '%s' "$FILTER_INPUT" | node tools/contrib-agent/dist/index.js filter)
+          echo "filter: $FILTER_RESULT" >&2
+
+          PASS=$(printf '%s' "$FILTER_RESULT" | jq -r '.pass // false')
+          REASON=$(printf '%s' "$FILTER_RESULT" | jq -r '.reason // ""')
+          LIC=$(printf '%s' "$FILTER_RESULT" | jq -r '.license // ""')
+          DBR=$(printf '%s' "$FILTER_RESULT" | jq -r '.default_branch // ""')
+
+          echo "filter_pass=$PASS" >> "$GITHUB_OUTPUT"
+          echo "license=$LIC" >> "$GITHUB_OUTPUT"
+          echo "default_branch=$DBR" >> "$GITHUB_OUTPUT"
+          {
+            echo "filter_reason<<__EOF__"
+            printf '%s\n' "$REASON"
+            echo "__EOF__"
+          } >> "$GITHUB_OUTPUT"
+
+          if [ "$PASS" = "true" ]; then
+            echo "continue=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "continue=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Comment on issue (monorepo, no subpath)
+        if: ${{ inputs.issue_number != 0 && steps.run.outputs.monorepo == 'true' && steps.run.outputs.subpath == '' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE: ${{ inputs.issue_number }}
+          REPO: ${{ github.repository }}
+        run: |
+          gh issue comment "$ISSUE" -R "$REPO" --body "Detected a monorepo with multiple MCP-server subpaths. Please open separate issues per subpath (e.g. \`owner/name#servers/foo\`). Matrix dispatch is a v2 followup."
+
+      - name: Comment on issue (filter reject)
+        if: ${{ inputs.issue_number != 0 && steps.run.outputs.continue == 'false' && steps.run.outputs.monorepo != 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE: ${{ inputs.issue_number }}
+          REPO: ${{ github.repository }}
+          REASON: ${{ steps.run.outputs.filter_reason }}
+        run: |
+          gh issue comment "$ISSUE" -R "$REPO" --body "Filter rejected this repo: ${REASON:-(no reason given)}"
+
+  resolve-commit:
+    name: resolve commit SHA
+    needs: expand-and-filter
+    if: ${{ needs.expand-and-filter.outputs.continue == 'true' }}
+    runs-on: ubuntu-latest
+    outputs:
+      commit_sha: ${{ steps.sha.outputs.commit_sha }}
+    steps:
+      - name: Resolve default-branch HEAD
+        id: sha
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SLUG: ${{ needs.expand-and-filter.outputs.repo_slug }}
+          DBR: ${{ needs.expand-and-filter.outputs.default_branch }}
+        run: |
+          set -euo pipefail
+          SHA=$(gh api "repos/${SLUG}/commits/${DBR}" --jq .sha)
+          echo "commit_sha=$SHA" >> "$GITHUB_OUTPUT"
+
+  build-pre-candidate:
+    name: build pre-candidate
+    needs: [expand-and-filter, resolve-commit]
+    if: ${{ needs.expand-and-filter.outputs.continue == 'true' }}
+    runs-on: ubuntu-latest
+    outputs:
+      candidate: ${{ steps.j.outputs.candidate }}
+    steps:
+      - name: Assemble dedup candidate JSON
+        id: j
+        env:
+          SLUG: ${{ needs.expand-and-filter.outputs.repo_slug }}
+          COMMIT: ${{ needs.resolve-commit.outputs.commit_sha }}
+          LICENSE: ${{ needs.expand-and-filter.outputs.license }}
+        run: |
+          set -euo pipefail
+          CAND=$(jq -nc \
+            --arg name "$SLUG" \
+            --arg repo "$SLUG" \
+            --arg commit "$COMMIT" \
+            --arg license "$LICENSE" \
+            '{name:$name, upstream:{repo:$repo, commit:$commit, license:$license}}')
+          echo "candidate=$CAND" >> "$GITHUB_OUTPUT"
+
+  dedup-pre:
+    name: dedup-pre
+    needs: [expand-and-filter, build-pre-candidate]
+    if: ${{ needs.expand-and-filter.outputs.continue == 'true' }}
+    uses: ./.github/workflows/_dedupe.yml
+    with:
+      candidate: ${{ needs.build-pre-candidate.outputs.candidate }}
+
+  dedup-pre-gate:
+    name: dedup-pre gate
+    needs: [expand-and-filter, dedup-pre]
+    if: ${{ always() && needs.expand-and-filter.outputs.continue == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    outputs:
+      proceed: ${{ steps.gate.outputs.proceed }}
+    steps:
+      - name: Gate on dedup kind
+        id: gate
+        env:
+          KIND: ${{ needs.dedup-pre.outputs.kind }}
+        run: |
+          set -euo pipefail
+          case "$KIND" in
+            new|upgrade)
+              echo "proceed=true" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "proceed=false" >> "$GITHUB_OUTPUT"
+              ;;
+          esac
+
+      - name: Comment on issue (dedup blocked)
+        if: ${{ inputs.issue_number != 0 && steps.gate.outputs.proceed == 'false' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE: ${{ inputs.issue_number }}
+          REPO: ${{ github.repository }}
+          KIND: ${{ needs.dedup-pre.outputs.kind }}
+        run: |
+          gh issue comment "$ISSUE" -R "$REPO" --body "Dedup result: \`${KIND}\` — not eligible for automated pipeline. See dedup output for details."
+
+  analyze:
+    name: analyze
+    needs: [expand-and-filter, dedup-pre-gate]
+    if: ${{ needs.dedup-pre-gate.outputs.proceed == 'true' }}
+    uses: ./.github/workflows/_analyze.yml
+    with:
+      repo: ${{ needs.expand-and-filter.outputs.repo_slug }}
+      subpath: ${{ needs.expand-and-filter.outputs.subpath }}
+
+  synthesize:
+    name: synthesize
+    needs: [expand-and-filter, dedup-pre-gate, analyze]
+    if: ${{ needs.dedup-pre-gate.outputs.proceed == 'true' }}
+    uses: ./.github/workflows/_synthesize.yml
+    with:
+      repo: ${{ needs.expand-and-filter.outputs.repo_slug }}
+      subpath: ${{ needs.expand-and-filter.outputs.subpath }}
+    secrets:
+      aws_bearer_token_bedrock: ${{ secrets.aws_bearer_token_bedrock }}
+
+  build-post-candidate:
+    name: build post-candidate
+    needs: [expand-and-filter, resolve-commit, synthesize]
+    if: ${{ needs.synthesize.outputs.ok == 'true' }}
+    runs-on: ubuntu-latest
+    outputs:
+      candidate: ${{ steps.j.outputs.candidate }}
+    steps:
+      - name: Assemble dedup candidate JSON (with tools from manifest)
+        id: j
+        env:
+          SLUG: ${{ needs.expand-and-filter.outputs.repo_slug }}
+          COMMIT: ${{ needs.resolve-commit.outputs.commit_sha }}
+          LICENSE: ${{ needs.expand-and-filter.outputs.license }}
+          MANIFEST: ${{ needs.synthesize.outputs.manifest }}
+        run: |
+          set -euo pipefail
+          # Best-effort tool extraction from the YAML manifest; if yq is unavailable
+          # or the manifest has no tools key, pass empty array.
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
+          TOOLS_JSON=$(printf '%s' "$MANIFEST" | yq -o=json '.tools // []' 2>/dev/null || echo '[]')
+          CAND=$(jq -nc \
+            --arg name "$SLUG" \
+            --arg repo "$SLUG" \
+            --arg commit "$COMMIT" \
+            --arg license "$LICENSE" \
+            --argjson tools "$TOOLS_JSON" \
+            '{name:$name, upstream:{repo:$repo, commit:$commit, license:$license}, tools:$tools}')
+          echo "candidate=$CAND" >> "$GITHUB_OUTPUT"
+
+  dedup-post:
+    name: dedup-post
+    needs: [build-post-candidate]
+    if: ${{ needs.build-post-candidate.result == 'success' }}
+    uses: ./.github/workflows/_dedupe.yml
+    with:
+      candidate: ${{ needs.build-post-candidate.outputs.candidate }}
+
+  validate:
+    name: validate
+    needs: synthesize
+    if: ${{ needs.synthesize.outputs.ok == 'true' }}
+    uses: ./.github/workflows/_validate.yml
+    with:
+      manifest: ${{ needs.synthesize.outputs.manifest }}
+      skip_smoke: true
+
+  compute-flake-name:
+    name: compute flake name
+    needs: [validate]
+    if: ${{ needs.validate.outputs.ok == 'true' }}
+    runs-on: ubuntu-latest
+    outputs:
+      name: ${{ steps.name.outputs.name }}
+    steps:
+      - name: Extract name from flake_dir
+        id: name
+        env:
+          FLAKE_DIR: ${{ needs.validate.outputs.flake_dir }}
+        run: echo "name=$(basename "$FLAKE_DIR")" >> "$GITHUB_OUTPUT"
+
+  build-image:
+    name: build image
+    needs: [synthesize, validate, compute-flake-name]
+    if: ${{ needs.synthesize.outputs.ok == 'true' && needs.validate.outputs.ok == 'true' }}
+    uses: ./.github/workflows/_build.yml
+    with:
+      flake_name: ${{ needs.compute-flake-name.outputs.name }}
+      push: false
+
+  open-pr:
+    name: open-pr
+    needs: [synthesize, dedup-post, validate, compute-flake-name, build-image]
+    if: ${{ always() && needs.synthesize.outputs.ok == 'true' && needs.validate.result != 'cancelled' }}
+    uses: ./.github/workflows/_pr.yml
+    with:
+      manifest: ${{ needs.synthesize.outputs.manifest }}
+      flake_dir: ${{ needs.validate.outputs.flake_dir }}
+      smoke_output: ${{ needs.validate.outputs.smoke_output }}
+      needs_human: ${{ needs.validate.outputs.ok != 'true' || needs.build-image.result != 'success' }}
+      needs_human_reason: ${{ needs.validate.outputs.ok != 'true' && format('validate failed at stage {0}', needs.validate.outputs.stage) || needs.build-image.result != 'success' && 'image build failed' || '' }}
+      dedup_kind: ${{ needs.dedup-post.outputs.kind }}
+      auto_merge_eligible: ${{ needs.dedup-post.outputs.auto_merge_eligible == 'true' }}
+      branch_name: ${{ inputs.branch_name }}
+
+  report:
+    name: report to issue
+    needs: [expand-and-filter, analyze, synthesize, validate, compute-flake-name, build-image, open-pr]
+    if: ${{ always() && inputs.issue_number != 0 && needs.expand-and-filter.outputs.continue == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Build and post status comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE: ${{ inputs.issue_number }}
+          REPO_FULL: ${{ github.repository }}
+          INPUT_REPO: ${{ inputs.repo }}
+          ANALYZE_OK: ${{ needs.analyze.outputs.ok }}
+          ANALYZE_PATTERN: ${{ needs.analyze.outputs.build_pattern }}
+          ANALYZE_RUNNER: ${{ needs.analyze.outputs.runner }}
+          SYNTH_OK: ${{ needs.synthesize.outputs.ok }}
+          SYNTH_ERROR: ${{ needs.synthesize.outputs.error }}
+          SYNTH_TOKENS: ${{ needs.synthesize.outputs.tokens_used }}
+          VALIDATE_OK: ${{ needs.validate.outputs.ok }}
+          VALIDATE_STAGE: ${{ needs.validate.outputs.stage }}
+          BUILD_RESULT: ${{ needs.build-image.result }}
+          PR_URL: ${{ needs.open-pr.outputs.pr_url }}
+        run: |
+          set -euo pipefail
+          comment_file="$(mktemp)"
+
+          {
+            printf '### Pipeline result for `%s`\n\n' "$INPUT_REPO"
+
+            # Analyze
+            if [ "$ANALYZE_OK" = "true" ]; then
+              printf '- **Analyze**: %s / %s\n' "$ANALYZE_RUNNER" "$ANALYZE_PATTERN"
+            else
+              printf '- **Analyze**: failed\n'
+            fi
+
+            # Synthesize
+            if [ "$SYNTH_OK" = "true" ]; then
+              printf '- **Synthesize**: success (%s tokens)\n' "${SYNTH_TOKENS:-?}"
+            else
+              printf '- **Synthesize**: failed — %s\n' "${SYNTH_ERROR:-unknown error}"
+            fi
+
+            # Validate
+            if [ "$VALIDATE_OK" = "true" ]; then
+              printf '- **Validate**: passed\n'
+            elif [ -n "$VALIDATE_STAGE" ]; then
+              printf '- **Validate**: failed at stage `%s`\n' "$VALIDATE_STAGE"
+            else
+              printf '- **Validate**: skipped or not reached\n'
+            fi
+
+            # Build
+            case "$BUILD_RESULT" in
+              success) printf '- **Build**: image built successfully\n' ;;
+              failure) printf '- **Build**: image build failed\n' ;;
+              *) printf '- **Build**: skipped\n' ;;
+            esac
+
+            # PR
+            if [ -n "$PR_URL" ]; then
+              printf '\n**PR**: %s\n' "$PR_URL"
+            fi
+          } > "$comment_file"
+
+          gh issue comment "$ISSUE" \
+            -R "$REPO_FULL" \
+            --body-file "$comment_file"

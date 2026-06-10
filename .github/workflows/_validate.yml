@@ -1,0 +1,88 @@
+# Reusable workflow: validate a synthesized manifest and emit flake files.
+#
+# The contrib-agent validate subcommand writes Dockerfile, compose.yaml,
+# README.md, ATTRIBUTION.md under flakes/<name>/ in the workspace as a side
+# effect. For v1, we let them sit in the workspace; the _pr.yml step commits
+# them. If you need to forward them to a separate job, upload as an artifact
+# in the caller.
+name: _validate
+
+on:
+  workflow_call:
+    inputs:
+      manifest:
+        description: 'YAML manifest produced by synthesize.'
+        required: true
+        type: string
+      skip_smoke:
+        description: 'If true, skip the smoke-test stage (Phase 0 default).'
+        required: false
+        type: boolean
+        default: true
+    outputs:
+      ok:
+        description: 'Boolean string: whether validation succeeded.'
+        value: ${{ jobs.validate.outputs.ok }}
+      stage:
+        description: 'Which validate stage emitted the result (gen | smoke | done).'
+        value: ${{ jobs.validate.outputs.stage }}
+      flake_dir:
+        description: 'Path to the flakes/<name>/ directory written to the workspace.'
+        value: ${{ jobs.validate.outputs.flake_dir }}
+      smoke_output:
+        description: 'Captured smoke-test transcript, if any.'
+        value: ${{ jobs.validate.outputs.smoke_output }}
+      errors_json:
+        description: 'JSON array of validation errors (single-line).'
+        value: ${{ jobs.validate.outputs.errors_json }}
+
+jobs:
+  validate:
+    name: validate
+    runs-on: ubuntu-latest
+    outputs:
+      ok: ${{ steps.run.outputs.ok }}
+      stage: ${{ steps.run.outputs.stage }}
+      flake_dir: ${{ steps.run.outputs.flake_dir }}
+      smoke_output: ${{ steps.run.outputs.smoke_output }}
+      errors_json: ${{ steps.run.outputs.errors_json }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Build contrib-agent
+        run: cd tools/contrib-agent && npm ci --silent && npm run build
+
+      - name: Run contrib-agent validate
+        id: run
+        env:
+          MANIFEST_YAML: ${{ inputs.manifest }}
+          SKIP_SMOKE: ${{ inputs.skip_smoke }}
+        run: |
+          set -euo pipefail
+          INPUT=$(jq -nc \
+            --arg manifest "$MANIFEST_YAML" \
+            --argjson skipSmoke ${SKIP_SMOKE:-true} \
+            '{manifest:$manifest, skipSmoke:$skipSmoke}')
+
+          RESULT=$(printf '%s' "$INPUT" | node tools/contrib-agent/dist/index.js validate)
+          echo "validate result: $RESULT" >&2
+
+          OK=$(printf '%s' "$RESULT" | jq -r '.ok // false')
+          STAGE=$(printf '%s' "$RESULT" | jq -r '.stage // ""')
+          FLAKE_DIR=$(printf '%s' "$RESULT" | jq -r '.flakeDir // ""')
+          SMOKE=$(printf '%s' "$RESULT" | jq -r '.smokeOutput // ""')
+          ERRORS=$(printf '%s' "$RESULT" | jq -c '.errors // []')
+
+          echo "ok=$OK" >> "$GITHUB_OUTPUT"
+          echo "stage=$STAGE" >> "$GITHUB_OUTPUT"
+          echo "flake_dir=$FLAKE_DIR" >> "$GITHUB_OUTPUT"
+          echo "errors_json=$ERRORS" >> "$GITHUB_OUTPUT"
+          {
+            echo "smoke_output<<__EOF__"
+            printf '%s\n' "$SMOKE"
+            echo "__EOF__"
+          } >> "$GITHUB_OUTPUT"
