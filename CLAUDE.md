@@ -150,7 +150,7 @@ The agent that converts repos to flakes will:
 2. Deterministic generator turns manifest into Dockerfile/compose/README
 3. Sandbox validation: build + smoke test in isolated runner (no secrets, egress-restricted)
 4. PR bot: Opens PR with manifest + generated files + smoke-test transcript
-5. **Security policy:** Agent PRs never auto-merge for new upstreams; human review of manifest + repo reputation
+5. **Security policy:** Agent PRs never auto-merge for new upstreams; human review of manifest + repo reputation. See "Auto-merge carve-out" below for the upgrade-only exception.
 
 ## Positioning vs. Alternatives
 
@@ -177,10 +177,26 @@ Before building the framework, validate:
 
 - Pinned SHAs prevent silent upstream compromise
 - License gates image publication
-- No auto-merge for agent-generated PRs
+- No auto-merge for agent-generated PRs (see carve-out below)
 - Image signing (cosign) + SBOM planned
 - Smoke test as merge gate ensures every flake provably runs
 - Document docker.sock = root-equivalent; offer socket-proxy variant
+
+### Auto-merge carve-out (upgrade-only)
+
+Default policy is **no auto-merge** for any agent-generated PR. The single exception is upgrade-only release batches.
+
+A PR is **upgrade-eligible** when the dedup stage (`tools/contrib-agent` → `dedup`) classifies it as `upgrade` AND all of:
+
+1. `upstream.repo` is unchanged (string-equal after normalization)
+2. `upstream.commit` is a new SHA
+3. `tools` form a non-strict superset of the previous manifest's tools (no tools dropped)
+4. `upstream.license` is unchanged
+5. Smoke test + composite release-gate test pass
+
+Auto-merge fires only on a **release batch** where *every* PR in the batch is upgrade-eligible. A single `new` / `conflict` / non-superset / license-changed PR in the batch reverts the entire batch to human merge. Rationale: the carve-out preserves "every new upstream gets a human" while letting routine SHA bumps flow without manual toil.
+
+The dedup classification is the gatekeeper. If you change `stages/dedup.ts`, update this policy in lockstep.
 
 ## Open Questions to Settle
 

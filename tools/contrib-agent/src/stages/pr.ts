@@ -76,7 +76,7 @@ function renderBody(input: PrInput): string {
   lines.push(
     '',
     '---',
-    'Opened by `tools/contrib-agent`. Per repo policy, agent PRs do not auto-merge for new upstreams.',
+    'Opened by `tools/contrib-agent`. Per repo policy, agent PRs do not auto-merge for new upstreams. Upgrade-only PRs (same `upstream.repo`, SHA bump, tools superset, license unchanged) may auto-merge as part of an upgrade-only release batch — see CLAUDE.md "Auto-merge carve-out".',
   );
   return lines.join('\n');
 }
