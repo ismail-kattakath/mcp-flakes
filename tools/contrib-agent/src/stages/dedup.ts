@@ -2,22 +2,15 @@ import { promises as fs } from 'node:fs';
 import * as yaml from 'yaml';
 import { repoPath } from '../lib/paths.js';
 
-/**
- * Dedup classifies a candidate against the existing flakes/<name>/ folder.
- *
- * The four kinds gate the release pipeline:
- *  - `new`        — no existing flake. Normal PR; human merge required.
- *  - `identical`  — same upstream + same SHA. Skip; nothing to do.
- *  - `upgrade`    — same upstream, new SHA. May be auto-merge-eligible when
- *                   tools form a non-strict superset and license is unchanged.
- *                   This is the ONLY classification that unlocks auto-merge.
- *  - `conflict`   — flake name exists but points at a different upstream repo.
- *                   Hard-stop; needs a human to rename or reject.
- *
- * Designed to be called either pre-synth (with a minimal candidate) for cheap
- * skipping of identical SHAs, or post-synth (with full manifest) for the
- * auto-merge eligibility decision.
- */
+export interface DedupInput {
+  name: string;
+  upstream: {
+    repo: string;
+    commit: string;
+    license: string;
+  };
+  tools?: string[];
+}
 
 export type DedupResult =
   | { kind: 'new' }
@@ -37,85 +30,99 @@ export type DedupResult =
       candidate_repo: string;
     };
 
-export interface DedupInput {
-  name: string;
-  upstream: {
-    repo: string;
-    commit: string;
-    license: string;
-  };
-  /**
-   * Optional. When omitted, an `upgrade` classification will set
-   * `tools_superset: false` and therefore `auto_merge_eligible: false` —
-   * conservative by design, so pre-synth callers never accidentally trigger
-   * auto-merge.
-   */
-  tools?: string[];
-}
-
 interface ExistingManifest {
-  upstream: {
-    repo: string;
-    commit: string;
-    license: string;
+  name?: string;
+  upstream?: {
+    repo?: string;
+    commit?: string;
+    license?: string;
   };
   tools?: string[];
 }
 
-export async function dedup(candidate: DedupInput): Promise<DedupResult> {
-  const existingPath = repoPath('flakes', candidate.name, 'flake.yaml');
-  let existing: ExistingManifest;
+/**
+ * Compare a candidate flake against any existing `flakes/<name>/flake.yaml`.
+ *
+ * - No existing flake: 'new'.
+ * - Same repo + same commit: 'identical' (skip; nothing to do).
+ * - Same repo + different commit: 'upgrade'. Eligible for auto-merge ONLY when
+ *   the candidate tools list is a superset of the existing one AND the license
+ *   is unchanged.
+ * - Different repo at the same flake name: 'conflict' (needs human triage).
+ *
+ * When `tools` is omitted (pre-synthesis pass), upgrade is reported with
+ * `auto_merge_eligible: false` and `tools_superset: false`. The post-synth
+ * call re-runs with the resolved tools list to produce the real verdict.
+ */
+export async function dedup(input: DedupInput): Promise<DedupResult> {
+  const manifestPath = repoPath('flakes', input.name, 'flake.yaml');
+  let raw: string;
   try {
-    const raw = await fs.readFile(existingPath, 'utf8');
-    existing = yaml.parse(raw) as ExistingManifest;
+    raw = await fs.readFile(manifestPath, 'utf8');
   } catch (e) {
-    if ((e as NodeJS.ErrnoException).code === 'ENOENT') return { kind: 'new' };
+    if ((e as NodeJS.ErrnoException).code === 'ENOENT') {
+      return { kind: 'new' };
+    }
     throw e;
   }
 
-  const existingRepo = normalizeRepo(existing.upstream.repo);
-  const candidateRepo = normalizeRepo(candidate.upstream.repo);
-  if (existingRepo !== candidateRepo) {
+  const existing = yaml.parse(raw) as ExistingManifest;
+  const existingRepo = normalizeRepo(existing.upstream?.repo ?? '');
+  const candidateRepo = normalizeRepo(input.upstream.repo);
+
+  if (!existingRepo) {
     return {
       kind: 'conflict',
-      reason: 'flake name collision with different upstream repo',
-      existing_repo: existing.upstream.repo,
-      candidate_repo: candidate.upstream.repo,
+      reason: 'existing manifest missing upstream.repo',
+      existing_repo: existing.upstream?.repo ?? '',
+      candidate_repo: input.upstream.repo,
     };
   }
 
-  if (existing.upstream.commit === candidate.upstream.commit) {
-    return { kind: 'identical', existing_commit: existing.upstream.commit };
+  if (existingRepo !== candidateRepo) {
+    return {
+      kind: 'conflict',
+      reason: `flake name "${input.name}" already maps to a different upstream`,
+      existing_repo: existing.upstream?.repo ?? '',
+      candidate_repo: input.upstream.repo,
+    };
   }
 
+  const existingCommit = existing.upstream?.commit ?? '';
+  if (existingCommit && existingCommit === input.upstream.commit) {
+    return { kind: 'identical', existing_commit: existingCommit };
+  }
+
+  const existingLicense = existing.upstream?.license ?? '';
+  const licenseUnchanged = existingLicense === input.upstream.license;
   const existingTools = existing.tools ?? [];
-  const candidateTools = candidate.tools;
-  const candidateToolSet = new Set(candidateTools ?? []);
-  // Superset check: every previously-shipped tool must still be present.
-  // If the candidate omitted tools (pre-synth call), refuse the superset
-  // claim — we don't have evidence either way.
-  const tools_superset =
-    candidateTools !== undefined &&
-    existingTools.length > 0 &&
-    existingTools.every((t) => candidateToolSet.has(t));
-  const license_unchanged =
-    existing.upstream.license === candidate.upstream.license;
-  const auto_merge_eligible = tools_superset && license_unchanged;
+  const toolsSuperset =
+    input.tools !== undefined && isSuperset(input.tools, existingTools);
+  const autoMergeEligible = toolsSuperset && licenseUnchanged;
 
   return {
     kind: 'upgrade',
-    existing_commit: existing.upstream.commit,
-    existing_license: existing.upstream.license,
-    tools_superset,
-    license_unchanged,
-    auto_merge_eligible,
+    existing_commit: existingCommit,
+    existing_license: existingLicense,
+    tools_superset: toolsSuperset,
+    license_unchanged: licenseUnchanged,
+    auto_merge_eligible: autoMergeEligible,
   };
 }
 
-function normalizeRepo(url: string): string {
-  return url
+function normalizeRepo(repo: string): string {
+  return repo
     .replace(/^https?:\/\//, '')
+    .replace(/^github\.com\//, '')
     .replace(/\.git$/, '')
     .replace(/\/$/, '')
     .toLowerCase();
+}
+
+function isSuperset(candidate: string[], existing: string[]): boolean {
+  const set = new Set(candidate);
+  for (const t of existing) {
+    if (!set.has(t)) return false;
+  }
+  return true;
 }

@@ -1,12 +1,17 @@
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import * as yaml from 'yaml';
-import { filter } from './stages/filter.js';
+import { filter, type FilterResult } from './stages/filter.js';
 import { triage } from './stages/triage.js';
 import { synthesize, cleanupWorkdir } from './stages/synthesize.js';
 import { validate } from './stages/validate.js';
 import { openPr } from './stages/pr.js';
 import { expand } from './stages/expand.js';
+import { dedup, type DedupResult } from './stages/dedup.js';
 import { append, makeId, type LedgerRecord, type Status } from './state/ledger.js';
 import { log } from './lib/log.js';
+
+const execFileP = promisify(execFile);
 
 export type Outcome =
   | { kind: 'pr-opened'; url: string }
@@ -40,6 +45,7 @@ export async function runPipeline(
     skipFilter: !!opts.skipFilter,
   });
 
+  let filterResult: FilterResult | undefined;
   if (!opts.skipFilter) {
     const f = await filter(repo, opts.subpath);
     if (!f.pass) {
@@ -50,6 +56,7 @@ export async function runPipeline(
       });
       return { kind: 'skipped', reason: f.reason ?? 'filter' };
     }
+    filterResult = f;
   }
 
   // Monorepo expansion: only run when we haven't already been scoped to a
@@ -76,6 +83,53 @@ export async function runPipeline(
       });
       log.info('pipeline.expanded', { repo, count: exp.subpaths.length });
       return { kind: 'expanded', subpaths: exp.subpaths };
+    }
+  }
+
+  // Pre-synth dedup: short-circuit identical/conflict BEFORE paying ~50k
+  // synthesis tokens. Only runs when we have a filter result (need license)
+  // and the candidate is concretely scoped (subpath set, or expand returned
+  // 'single' just above). The post-synth call replaces the conservative
+  // auto_merge_eligible=false with the real verdict once tools are known.
+  let dedupPre: DedupResult | undefined;
+  if (filterResult) {
+    const preName = flakeNameFor(repo, opts.subpath);
+    try {
+      const commit = await resolveCommit(repo, filterResult.default_branch);
+      dedupPre = await dedup({
+        name: preName,
+        upstream: {
+          repo,
+          commit,
+          license: filterResult.license!,
+        },
+        // tools omitted — pre-synth. auto_merge_eligible will be false on
+        // upgrade until the post-synth call.
+      });
+    } catch (e) {
+      log.warn('pipeline.dedup_pre_failed', {
+        repo,
+        error: (e as Error).message,
+      });
+    }
+
+    if (dedupPre?.kind === 'identical') {
+      const shortSha = dedupPre.existing_commit.slice(0, 7);
+      await write(id, repo, {
+        status: 'skipped',
+        reason: `identical-sha:${shortSha}`,
+        subpath: opts.subpath,
+      });
+      return { kind: 'skipped', reason: 'identical-sha' };
+    }
+    if (dedupPre?.kind === 'conflict') {
+      await write(id, repo, {
+        status: 'needs-human',
+        stage: 'dedup',
+        reason: dedupPre.reason,
+        subpath: opts.subpath,
+      });
+      return { kind: 'needs-human', reason: dedupPre.reason };
     }
   }
 
@@ -110,11 +164,41 @@ export async function runPipeline(
       return { kind: 'dry-run', tokensUsed: s.tokensUsed };
     }
 
+    // Post-synth dedup: re-run with the resolved tools list to compute the
+    // real auto_merge_eligible. A conflict at this point means the agent
+    // picked a name colliding with a different upstream — rare; treat as
+    // needs-human and do NOT auto-merge.
+    let dedupPost: DedupResult | undefined;
+    try {
+      dedupPost = await dedup({
+        name: s.manifest.name,
+        upstream: s.manifest.upstream,
+        tools: s.manifest.tools,
+      });
+    } catch (e) {
+      log.warn('pipeline.dedup_post_failed', {
+        name: s.manifest.name,
+        error: (e as Error).message,
+      });
+    }
+
+    let conflictNeedsHuman = false;
+    let conflictReason: string | undefined;
+    if (dedupPost?.kind === 'conflict') {
+      log.warn('pipeline.dedup_post_conflict', {
+        name: s.manifest.name,
+        reason: dedupPost.reason,
+      });
+      conflictNeedsHuman = true;
+      conflictReason = `dedup conflict: ${dedupPost.reason}`;
+    }
+
     const v = await validate(s.manifest, { skipSmoke: SKIP_SMOKE });
-    const needsHuman = !v.ok;
-    const needsHumanReason = needsHuman
+    const validateFailed = !v.ok;
+    const needsHuman = validateFailed || conflictNeedsHuman;
+    const needsHumanReason = validateFailed
       ? `validate failed at ${v.stage}: ${(v.errors ?? []).join('; ')}`
-      : undefined;
+      : conflictReason;
 
     if (opts.noPr) {
       log.info('pipeline.no_pr', {
@@ -135,6 +219,7 @@ export async function runPipeline(
         smokeOutput: v.smokeOutput,
         needsHuman,
         needsHumanReason,
+        dedup: dedupPost,
       });
       pr_url = pr.url;
     } catch (e) {
@@ -161,6 +246,29 @@ export async function runPipeline(
   } finally {
     await cleanupWorkdir(s.workdir).catch(() => undefined);
   }
+}
+
+/**
+ * Compute the flake name the way filter.ts used to: subpath leaf if scoped to
+ * one server of a monorepo, otherwise the repo's name segment. Lowercased.
+ */
+function flakeNameFor(repo: string, subpath?: string): string {
+  const slug = repo.replace(/^https?:\/\/github\.com\//, '').replace(/\/$/, '');
+  const [, name] = slug.split('/');
+  return (subpath ? subpath.split('/').pop()! : name).toLowerCase();
+}
+
+/** Resolve the HEAD commit SHA of `branch` via gh api. */
+async function resolveCommit(repo: string, branch?: string): Promise<string> {
+  const slug = repo.replace(/^https?:\/\/github\.com\//, '').replace(/\/$/, '');
+  const ref = branch ?? 'HEAD';
+  const { stdout } = await execFileP('gh', [
+    'api',
+    `repos/${slug}/commits/${ref}`,
+    '--jq',
+    '.sha',
+  ]);
+  return stdout.trim();
 }
 
 async function write(
