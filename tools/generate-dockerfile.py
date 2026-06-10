@@ -10,10 +10,13 @@ import yaml
 import json
 from pathlib import Path
 
-# Runner image mapping
+# Runner image mapping — multi-arch manifest-list digests so builds work on
+# both amd64 (GitHub Actions runners) and arm64 (Apple Silicon dev machines).
+# Updated 2026-06-10. Re-pull when refreshing base versions:
+#   curl -s https://hub.docker.com/v2/repositories/library/node/tags/22-bookworm-slim/ | jq .digest
 RUNNER_IMAGES = {
-    "node": "node@sha256:10fc5f5f33cba34a4befa58fcf95f724e67707fab7c32fb8cd3fcf90ebcc20df",
-    "python": "python@sha256:090ba77e2958f6af52a5341f788b50b032dd4ca28377d2893dcf1ecbdfdfe203",
+    "node": "node@sha256:7af03b14a13c8cdd38e45058fd957bf00a72bbe17feac43b1c15a689c029c732",      # 22-bookworm-slim
+    "python": "python@sha256:93ab4b7fa528b25124c97bcc755415e60eb671a86b4dbe0328df2fe2d1c1193d",  # 3.12-slim-bookworm
 }
 
 def load_flake_yaml(flake_path):
