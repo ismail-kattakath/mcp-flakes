@@ -17,10 +17,10 @@ COPY --from=source /repo /app
 
 WORKDIR /app
 
-# Install dependencies using yarn and build with TypeScript
+# Install dependencies and add tsx for TypeScript execution
 RUN corepack enable && \
     yarn install && \
-    yarn tsc --outDir dist
+    yarn add tsx
 
 FROM node:22.21-alpine AS release
 
@@ -33,15 +33,13 @@ LABEL org.opencontainers.image.licenses="MIT"
 LABEL org.opencontainers.image.authors="Christoffer Artmann"
 LABEL org.opencontainers.image.documentation="https://github.com/Artmann/package-registry-mcp"
 
-COPY --from=builder /app/dist /app/dist
+COPY --from=builder /app/src /app/src
 COPY --from=builder /app/package.json /app/package.json
 COPY --from=builder /app/yarn.lock /app/yarn.lock
+COPY --from=builder /app/node_modules /app/node_modules
 
 ENV NODE_ENV=production
 
 WORKDIR /app
 
-RUN corepack enable && \
-    yarn install --production
-
-ENTRYPOINT ["node", "dist/index.js"]
+ENTRYPOINT ["node", "--loader", "tsx/esm", "src/index.ts"]
