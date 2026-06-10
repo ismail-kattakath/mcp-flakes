@@ -2,7 +2,7 @@
 # Published npm package pattern
 # Package: mcp-searxng@1.3.2
 
-FROM node@sha256:10fc5f5f33cba34a4befa58fcf95f724e67707fab7c32fb8cd3fcf90ebcc20df
+FROM node@sha256:7af03b14a13c8cdd38e45058fd957bf00a72bbe17feac43b1c15a689c029c732
 
 # OCI labels for attribution
 LABEL org.opencontainers.image.source="https://github.com/ihor-sokoliuk/mcp-searxng"
