@@ -1,0 +1,19 @@
+name: clirank
+upstream:
+  repo: https://github.com/alexanderclapp/clirank-mcp-server
+  commit: 6a73958d2a7d090dd5c8639baf0734c2f986ab1f
+  license: MIT
+  package: clirank-mcp-server
+runner: node
+build:
+  type: npm-package
+  install: npm install -g clirank-mcp-server
+  entrypoint: ["npx", "clirank-mcp-server"]
+transport: stdio
+env: []
+tools:
+  - discover_services
+  - check_an_score
+  - compare_alternatives
+  - get_api_info
+publish_image: true

@@ -1,0 +1,20 @@
+name: sequentialthinking
+upstream:
+  repo: https://github.com/modelcontextprotocol/servers
+  commit: 275175cda17ca9c49920ceed2bcf27e12e59f8b2
+  license: MIT
+  subpath: src/sequentialthinking
+runner: node
+build:
+  install: npm ci
+  build: npm run build
+  entrypoint: ["node", "dist/index.js"]
+transport: stdio
+env:
+  - name: DISABLE_THOUGHT_LOGGING
+    required: false
+    secret: false
+    description: Set to 'true' to disable logging of thought information
+tools:
+  - sequential_thinking
+publish_image: true

@@ -1,0 +1,19 @@
+services:
+  mcp-fetch:
+    # Prebuilt image (instant pull) - will be pushed by CI
+    image: ghcr.io/mcp-flakes/fetch:latest
+
+    # Build fallback - used if pull fails or for local development
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    # Environment variables (pass-through pattern for bundle overrides)
+    environment:
+      - USER_AGENT=${USER_AGENT:-}
+      - IGNORE_ROBOTS_TXT=${IGNORE_ROBOTS_TXT:-false}
+      - PROXY_URL=${PROXY_URL:-}
+
+    # Stdio transport - no ports exposed
+    stdin_open: true
+    tty: false

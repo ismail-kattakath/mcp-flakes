@@ -1,0 +1,26 @@
+name: metmuseum
+upstream:
+  repo: https://github.com/mikechao/metmuseum-mcp
+  commit: 576b5441daa04cae33d4583c23c35074390c9e2f
+  license: MIT
+runner: node
+build:
+  install: npm install
+  build: npm run build
+  entrypoint: ["node", "dist/index.js"]
+transport: stdio
+env:
+  - name: MET_API_TIMEOUT_MS
+    required: false
+    secret: false
+    description: Timeout in milliseconds for Met Collection API requests (default 10000)
+  - name: MET_API_DEBUG
+    required: false
+    secret: false
+    description: Enable debug logging for schema validation failures (1, true, yes, on)
+tools:
+  - list-departments
+  - search-museum-objects
+  - get-museum-object
+  - open-met-explorer
+publish_image: true

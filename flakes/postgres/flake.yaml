@@ -1,0 +1,39 @@
+name: postgres
+version: 0.6.2
+description: PostgreSQL MCP Server - read-only database access with schema inspection
+language: typescript
+packageManager: npm
+
+upstream:
+  repo: https://github.com/modelcontextprotocol/servers-archived
+  commit: 9be4674
+  path: src/postgres
+  license: MIT
+
+tools:
+  - name: query
+    description: Execute read-only SQL queries in a PostgreSQL database
+
+resources:
+  - name: table-schemas
+    description: JSON schema information for each table in the database
+    pattern: "postgres://<host>/<table>/schema"
+
+env:
+  required:
+    - name: POSTGRES_URL
+      description: PostgreSQL connection URL (e.g., postgresql://user:pass@host:5432/dbname)
+      example: "postgresql://localhost:5432/mydb"
+
+build:
+  context: .
+  dockerfile: Dockerfile
+
+runtime:
+  entrypoint: ["node", "dist/index.js"]
+  args: ["${POSTGRES_URL}"]
+
+notes: |
+  - All queries are executed in READ ONLY transactions
+  - Automatically discovers table schemas from database metadata
+  - When running in Docker on macOS, use host.docker.internal for localhost connections

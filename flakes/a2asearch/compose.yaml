@@ -1,0 +1,16 @@
+services:
+  mcp-a2asearch:
+    # Prebuilt image (instant pull)
+    image: ghcr.io/mcp-flakes/a2asearch:latest
+
+    # Build fallback
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    # No environment variables needed - free public API
+    environment: {}
+
+    # Stdio transport
+    stdin_open: true
+    tty: false

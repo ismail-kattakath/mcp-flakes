@@ -1,0 +1,47 @@
+name: spotify
+upstream:
+  repo: https://github.com/gupta-kush/spotify-mcp
+  commit: 13a711cfe56e02b7e06b34da08c7238485cd539b
+  license: MIT
+runner: python
+build:
+  install: uv pip install --system .
+  entrypoint: ["python", "-m", "spotify_mcp"]
+transport: stdio
+env:
+  - name: SPOTIFY_CLIENT_ID
+    required: true
+    secret: true
+    description: Spotify API Client ID (get from https://developer.spotify.com/dashboard)
+  - name: SPOTIFY_MCP_TOOLSETS
+    required: false
+    secret: false
+    description: Comma-separated list of toolsets to load (core, social, discovery, power, destructive, all)
+tools:
+  - play
+  - pause
+  - skip_next
+  - skip_previous
+  - seek
+  - set_volume
+  - shuffle
+  - repeat
+  - search_tracks
+  - search_albums
+  - search_artists
+  - search_playlists
+  - get_current_playback
+  - get_user_playlists
+  - create_playlist
+  - add_tracks_to_playlist
+  - get_playlist
+  - get_saved_tracks
+  - save_tracks
+  - get_top_artists
+  - get_top_tracks
+  - get_recommendations
+  - smart_shuffle
+  - vibe_analysis
+  - natural_language_search
+  - artist_network
+publish_image: true

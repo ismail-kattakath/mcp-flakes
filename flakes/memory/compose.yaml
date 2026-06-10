@@ -1,0 +1,17 @@
+services:
+  mcp-memory:
+    # Prebuilt image (instant pull) - will be pushed by CI
+    image: ghcr.io/mcp-flakes/memory:latest
+
+    # Build fallback - used if pull fails or for local development
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    # Environment variables (pass-through pattern for bundle overrides)
+    environment:
+      - MEMORY_FILE_PATH=${MEMORY_FILE_PATH:-memory.jsonl}
+
+    # Stdio transport - no ports exposed
+    stdin_open: true
+    tty: false

@@ -1,0 +1,18 @@
+services:
+  mcp-metmuseum:
+    # Prebuilt image (instant pull) - will be pushed by CI
+    image: ghcr.io/mcp-flakes/metmuseum:latest
+
+    # Build fallback - used if pull fails or for local development
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    # Environment variables (optional configuration)
+    environment:
+      - MET_API_TIMEOUT_MS=${MET_API_TIMEOUT_MS:-10000}
+      - MET_API_DEBUG=${MET_API_DEBUG:-false}
+
+    # Stdio transport - no ports exposed
+    stdin_open: true
+    tty: false

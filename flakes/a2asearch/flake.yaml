@@ -1,0 +1,19 @@
+name: a2asearch
+upstream:
+  repo: https://github.com/tadas-github/a2asearch-mcp
+  commit: c4feef919f42785380136e417d134dae42f5cd85
+  license: MIT
+  package: a2asearch-mcp
+  package_version: 1.1.6
+runner: node
+build:
+  type: npm-package
+  install: npm install -g a2asearch-mcp@1.1.6
+  entrypoint: ["npx", "-y", "a2asearch-mcp"]
+transport: stdio
+env: []
+tools:
+  - search_mcp_servers
+  - get_server_details
+  - list_categories
+publish_image: true

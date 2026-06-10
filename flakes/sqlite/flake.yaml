@@ -1,0 +1,62 @@
+name: sqlite
+version: 0.6.2
+description: SQLite MCP Server - database operations with business intelligence capabilities
+language: python
+packageManager: uv
+
+upstream:
+  repo: https://github.com/modelcontextprotocol/servers-archived
+  commit: 9be4674
+  path: src/sqlite
+  license: MIT
+
+tools:
+  - name: read_query
+    description: Execute SELECT queries to read data
+  - name: write_query
+    description: Execute INSERT, UPDATE, or DELETE queries
+  - name: create_table
+    description: Create new tables in the database
+  - name: list_tables
+    description: Get list of all tables in the database
+  - name: describe_table
+    description: View schema information for a specific table
+  - name: append_insight
+    description: Add business insights to the memo resource
+
+resources:
+  - name: insights-memo
+    description: Continuously updated business insights memo
+    uri: "memo://insights"
+
+prompts:
+  - name: mcp-demo
+    description: Interactive demo for database operations with sample data
+    args:
+      - name: topic
+        required: true
+        description: Business domain to analyze
+
+env:
+  required:
+    - name: DB_PATH
+      description: Path to SQLite database file
+      example: "/data/mydb.sqlite"
+
+build:
+  context: .
+  dockerfile: Dockerfile
+
+runtime:
+  entrypoint: ["mcp-server-sqlite"]
+  args: ["--db-path", "${DB_PATH}"]
+
+volumes:
+  - description: Mount directory containing SQLite database
+    example: "-v /path/to/db:/data"
+
+notes: |
+  - Supports both read and write operations
+  - Includes business intelligence features with insight tracking
+  - Database file must be mounted into container
+  - Requires Python 3.10+

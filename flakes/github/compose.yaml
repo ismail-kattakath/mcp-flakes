@@ -1,0 +1,10 @@
+services:
+  github:
+    image: mcp/github:0.6.2
+    build:
+      context: .
+      dockerfile: Dockerfile
+    stdin_open: true
+    environment:
+      - GITHUB_PERSONAL_ACCESS_TOKEN=${GITHUB_PERSONAL_ACCESS_TOKEN}
+    entrypoint: ["node", "dist/index.js"]

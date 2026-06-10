@@ -1,0 +1,11 @@
+services:
+  postgres:
+    image: mcp/postgres:0.6.2
+    build:
+      context: .
+      dockerfile: Dockerfile
+    stdin_open: true
+    environment:
+      - POSTGRES_URL=${POSTGRES_URL:-postgresql://user:password@host.docker.internal:5432/mydb}
+    entrypoint: ["node", "dist/index.js"]
+    command: ["${POSTGRES_URL:-postgresql://user:password@host.docker.internal:5432/mydb}"]

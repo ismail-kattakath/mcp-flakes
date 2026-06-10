@@ -1,0 +1,87 @@
+name: github
+version: 0.6.2
+description: GitHub API MCP Server - file operations, repo management, search, and PR workflows
+language: typescript
+packageManager: npm
+
+upstream:
+  repo: https://github.com/modelcontextprotocol/servers-archived
+  commit: 9be4674
+  path: src/github
+  license: MIT
+
+tools:
+  - name: create_or_update_file
+    description: Create or update a single file in a repository
+  - name: push_files
+    description: Push multiple files in a single commit
+  - name: search_repositories
+    description: Search for GitHub repositories
+  - name: create_repository
+    description: Create a new GitHub repository
+  - name: get_file_contents
+    description: Get contents of a file or directory
+  - name: create_issue
+    description: Create a new issue
+  - name: create_pull_request
+    description: Create a new pull request
+  - name: fork_repository
+    description: Fork a repository
+  - name: create_branch
+    description: Create a new branch
+  - name: list_issues
+    description: List and filter repository issues
+  - name: update_issue
+    description: Update an existing issue
+  - name: add_issue_comment
+    description: Add a comment to an issue
+  - name: search_code
+    description: Search for code across GitHub
+  - name: search_issues
+    description: Search for issues and pull requests
+  - name: search_users
+    description: Search for GitHub users
+  - name: list_commits
+    description: Get commits of a branch
+  - name: get_issue
+    description: Get contents of a specific issue
+  - name: get_pull_request
+    description: Get details of a specific pull request
+  - name: list_pull_requests
+    description: List and filter repository pull requests
+  - name: create_pull_request_review
+    description: Create a review on a pull request
+  - name: merge_pull_request
+    description: Merge a pull request
+  - name: get_pull_request_files
+    description: Get list of files changed in a PR
+  - name: get_pull_request_status
+    description: Get combined status of PR status checks
+  - name: update_pull_request_branch
+    description: Update PR branch with latest base changes
+  - name: get_pull_request_comments
+    description: Get review comments on a PR
+  - name: get_pull_request_reviews
+    description: Get reviews on a pull request
+
+env:
+  required:
+    - name: GITHUB_PERSONAL_ACCESS_TOKEN
+      description: GitHub Personal Access Token with repo scope
+      example: "ghp_xxxxxxxxxxxxxxxxxxxxx"
+      sensitive: true
+
+build:
+  context: .
+  dockerfile: Dockerfile
+
+runtime:
+  entrypoint: ["node", "dist/index.js"]
+
+notes: |
+  - Requires GitHub Personal Access Token with 'repo' scope for private repos
+  - Use 'public_repo' scope for public repos only
+  - Automatic branch creation when creating/updating files
+  - Comprehensive error handling with clear messages
+  - Maintains proper Git history without force pushing
+  - See: https://github.com/settings/tokens

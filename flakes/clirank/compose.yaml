@@ -1,0 +1,9 @@
+services:
+  mcp-clirank:
+    image: ghcr.io/mcp-flakes/clirank:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment: {}
+    stdin_open: true
+    tty: false

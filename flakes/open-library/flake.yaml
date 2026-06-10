@@ -1,0 +1,19 @@
+name: open-library
+upstream:
+  repo: https://github.com/8enSmith/mcp-open-library
+  commit: 12bfb42d9d84c20a7759fa8caf10f96df746c7c4
+  license: MIT
+runner: node
+build:
+  install: npm install
+  build: npm run build
+  entrypoint: ["node", "build/index.js"]
+transport: stdio
+tools:
+  - get_book_by_title
+  - get_authors_by_name
+  - get_author_info
+  - get_author_photo
+  - get_book_cover
+  - get_book_by_id
+publish_image: true

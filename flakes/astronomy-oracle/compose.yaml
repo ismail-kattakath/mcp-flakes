@@ -1,0 +1,11 @@
+services:
+  mcp-astronomy-oracle:
+    image: ghcr.io/mcp-flakes/astronomy-oracle:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - LATITUDE=${LATITUDE:-0}
+      - LONGITUDE=${LONGITUDE:-0}
+    stdin_open: true
+    tty: false

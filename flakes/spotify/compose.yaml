@@ -1,0 +1,18 @@
+services:
+  mcp-spotify:
+    # Prebuilt image (instant pull) - will be pushed by CI
+    image: ghcr.io/mcp-flakes/spotify:latest
+
+    # Build fallback - used if pull fails or for local development
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    # Environment variables (pass-through pattern for bundle overrides)
+    environment:
+      - SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT_ID}
+      - SPOTIFY_MCP_TOOLSETS=${SPOTIFY_MCP_TOOLSETS:-core}
+
+    # Stdio transport - no ports exposed
+    stdin_open: true
+    tty: false

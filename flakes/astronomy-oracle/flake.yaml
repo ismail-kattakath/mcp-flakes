@@ -1,0 +1,28 @@
+name: astronomy-oracle
+upstream:
+  repo: https://github.com/gregario/astronomy-oracle
+  commit: dd8ee5e155c1b04ef366cc1288a3f2e58715ad9b
+  license: MIT
+  package: astronomy-oracle
+runner: node
+build:
+  type: npm-package
+  install: npm install -g astronomy-oracle
+  entrypoint: ["npx", "astronomy-oracle"]
+transport: stdio
+env:
+  - name: LATITUDE
+    required: false
+    secret: false
+    description: Observer latitude for calculations (default 0)
+  - name: LONGITUDE
+    required: false
+    secret: false
+    description: Observer longitude for calculations (default 0)
+tools:
+  - search_deep_sky_objects
+  - get_object_info
+  - calculate_visibility
+  - get_rise_set_times
+  - plan_observing_session
+publish_image: true

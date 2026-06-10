@@ -1,0 +1,25 @@
+name: git
+upstream:
+  repo: https://github.com/modelcontextprotocol/servers
+  commit: 275175cda17ca9c49920ceed2bcf27e12e59f8b2
+  license: MIT
+  subpath: src/git
+runner: python
+build:
+  install: uv sync --locked --no-dev --no-editable
+  entrypoint: ["mcp-server-git"]
+transport: stdio
+tools:
+  - git_status
+  - git_diff_unstaged
+  - git_diff_staged
+  - git_diff
+  - git_commit
+  - git_add
+  - git_reset
+  - git_log
+  - git_create_branch
+  - git_checkout
+  - git_show
+  - git_branch
+publish_image: true

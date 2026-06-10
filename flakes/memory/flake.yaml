@@ -1,0 +1,28 @@
+name: memory
+upstream:
+  repo: https://github.com/modelcontextprotocol/servers
+  commit: 275175cda17ca9c49920ceed2bcf27e12e59f8b2
+  license: MIT
+  subpath: src/memory
+runner: node
+build:
+  install: npm ci
+  build: npm run build
+  entrypoint: ["node", "dist/index.js"]
+transport: stdio
+env:
+  - name: MEMORY_FILE_PATH
+    required: false
+    secret: false
+    description: Path to the memory storage JSONL file (default memory.jsonl in server directory)
+tools:
+  - create_entities
+  - create_relations
+  - add_observations
+  - delete_entities
+  - delete_observations
+  - delete_relations
+  - read_graph
+  - search_nodes
+  - open_nodes
+publish_image: true

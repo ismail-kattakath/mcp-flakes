@@ -1,0 +1,29 @@
+name: fetch
+upstream:
+  repo: https://github.com/modelcontextprotocol/servers
+  commit: 275175cda17ca9c49920ceed2bcf27e12e59f8b2
+  license: MIT
+  subpath: src/fetch
+runner: python
+build:
+  install: uv sync --locked --no-dev --no-editable
+  entrypoint: ["mcp-server-fetch"]
+transport: stdio
+env:
+  - name: USER_AGENT
+    required: false
+    secret: false
+    description: Custom user agent string for HTTP requests
+  - name: IGNORE_ROBOTS_TXT
+    required: false
+    secret: false
+    description: Set to 'true' to ignore robots.txt restrictions
+  - name: PROXY_URL
+    required: false
+    secret: false
+    description: HTTP/HTTPS proxy URL for requests
+tools:
+  - fetch
+prompts:
+  - fetch
+publish_image: true

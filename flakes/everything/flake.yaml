@@ -1,0 +1,33 @@
+name: everything
+upstream:
+  repo: https://github.com/modelcontextprotocol/servers
+  commit: 275175cda17ca9c49920ceed2bcf27e12e59f8b2
+  license: MIT
+  subpath: src/everything
+runner: node
+build:
+  install: npm ci
+  build: npm run build
+  entrypoint: ["node", "dist/index.js"]
+transport: stdio
+tools:
+  - echo
+  - get-annotated-message
+  - get-env
+  - get-resource-links
+  - get-resource-reference
+  - get-roots-list
+  - gzip-file-as-resource
+  - get-structured-content
+  - get-sum
+  - get-tiny-image
+  - trigger-long-running-operation
+  - toggle-simulated-logging
+  - toggle-subscriber-updates
+  - trigger-elicitation-request
+  - trigger-url-elicitation
+  - trigger-sampling-request
+  - simulate-research-query
+  - trigger-sampling-request-async
+  - trigger-elicitation-request-async
+publish_image: true

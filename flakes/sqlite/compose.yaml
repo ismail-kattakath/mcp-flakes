@@ -1,0 +1,13 @@
+services:
+  sqlite:
+    image: mcp/sqlite:0.6.2
+    build:
+      context: .
+      dockerfile: Dockerfile
+    stdin_open: true
+    volumes:
+      - ${DB_PATH:-./data}:/data
+    environment:
+      - DB_PATH=${DB_PATH:-/data/test.db}
+    entrypoint: ["mcp-server-sqlite"]
+    command: ["--db-path", "${DB_PATH:-/data/test.db}"]
