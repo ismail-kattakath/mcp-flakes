@@ -21,7 +21,8 @@ WORKDIR /build
 RUN git clone https://github.com/eat-pray-ai/yutu.git . && \
     git checkout e2d232c0a2b645bb96da70d167d572c01f24c85b
 
-# Build the binary
+# Build the binary with GOTOOLCHAIN auto to download newer Go if needed
+ENV GOTOOLCHAIN=auto
 RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o yutu .
 
 # Runtime stage

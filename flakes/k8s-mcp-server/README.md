@@ -1,6 +1,11 @@
-# Kubernetes MCP Server
+# ☸️ Kubernetes MCP Server
 
-Secure execution of kubectl, helm, istioctl, and argocd CLI commands for Kubernetes cluster management.
+![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?logo=kubernetes&logoColor=white)
+![Helm](https://img.shields.io/badge/Helm-0F1689?logo=helm)
+![Istio](https://img.shields.io/badge/Istio-466BB0?logo=istio)
+![ArgoCD](https://img.shields.io/badge/ArgoCD-EF7B4D?logo=argo)
+
+Secure execution of kubectl, helm, istioctl, and argocd CLI commands for Kubernetes cluster management. All-in-one container with multi-cloud support.
 
 ## Overview
 
@@ -78,6 +83,131 @@ See the [Cloud Provider Support](https://github.com/alexei-led/k8s-mcp-server/bl
 - Read-only kubeconfig mount
 - Configurable command allowlist
 - Execution time limits
+
+## Use Cases
+
+| Use Case | Example |
+|----------|---------|
+| **Cluster Inspection** | "Show me all pods in the production namespace" |
+| **Deployments** | "Scale the web-app deployment to 5 replicas" |
+| **Helm Charts** | "Install the bitnami/postgresql chart in the database namespace" |
+| **Service Mesh** | "Analyze Istio traffic policies for the user-service" |
+| **GitOps** | "Check ArgoCD sync status for all applications" |
+| **Debugging** | "Get logs for all failing pods" |
+
+## Example Workflows
+
+### Deploy Application with Helm
+
+```bash
+# 1. Search for charts
+helm search repo wordpress
+
+# 2. Install chart
+helm install my-blog bitnami/wordpress \
+  --namespace websites \
+  --set wordpressPassword=secret
+
+# 3. Check deployment status
+kubectl get pods -n websites
+
+# 4. Get service endpoint
+kubectl get svc -n websites
+```
+
+### Istio Traffic Management
+
+```bash
+# 1. Check Istio injection
+istioctl analyze -n default
+
+# 2. View traffic metrics
+istioctl dashboard kiali
+
+# 3. Configure traffic splitting
+kubectl apply -f virtual-service.yaml
+```
+
+### ArgoCD GitOps Workflow
+
+```bash
+# 1. List applications
+argocd app list
+
+# 2. Sync application
+argocd app sync my-app
+
+# 3. Check sync status
+argocd app get my-app
+```
+
+## Cloud Provider Quickstart
+
+### AWS EKS
+
+```bash
+# Update kubeconfig
+aws eks update-kubeconfig --name my-cluster --region us-west-2
+
+# Run server
+docker compose run --rm mcp-k8s
+```
+
+### Google GKE
+
+```bash
+# Get credentials
+gcloud container clusters get-credentials my-cluster --region us-central1
+
+# Run server
+docker compose run --rm mcp-k8s
+```
+
+### Azure AKS
+
+```bash
+# Get credentials
+az aks get-credentials --resource-group myRG --name myCluster
+
+# Run server
+docker compose run --rm mcp-k8s
+```
+
+## Advanced Configuration
+
+### Command Allowlist
+
+Restrict available commands for security:
+
+```yaml
+environment:
+  - K8S_MCP_ALLOWED_COMMANDS=kubectl get,kubectl describe,helm list
+```
+
+### Execution Timeout
+
+Set maximum command runtime:
+
+```yaml
+environment:
+  - K8S_MCP_MAX_EXECUTION_TIME=600  # 10 minutes
+```
+
+### Transport Options
+
+Use HTTP or SSE instead of stdio:
+
+```yaml
+environment:
+  - K8S_MCP_TRANSPORT=sse
+  - K8S_MCP_PORT=8000
+```
+
+## Related Flakes
+
+- **postgres** - Database management
+- **git** - GitOps workflows
+- **github** - CI/CD integration
 
 ## Upstream
 

@@ -1,6 +1,10 @@
-# MCP Market Data Server Flake
+# 📈 MCP Market Data Server Flake
 
-Live cryptocurrency and stock market data for AI agents. Real-time prices, OHLCV candles, order books, and technical analysis. Zero API keys required, zero dependencies.
+![Crypto](https://img.shields.io/badge/Crypto-Live_Data-F7931A?logo=bitcoin)
+![Stocks](https://img.shields.io/badge/Stocks-Real--time-blue?logo=yahoo)
+![No API Keys](https://img.shields.io/badge/API_Keys-Not_Required-success)
+
+Live cryptocurrency and stock market data for AI agents. Real-time prices, OHLCV candles, order books, and technical analysis. **Zero API keys required**, zero dependencies.
 
 ## Upstream
 
@@ -130,6 +134,108 @@ Get Fear & Greed Index:
 }
 ```
 
+## Quick Start
+
+```bash
+# Start the server - no API keys needed!
+cd flakes/mcp-market-data
+docker compose run --rm mcp-market-data
+```
+
+## Use Cases
+
+| Use Case | Example |
+|----------|---------|
+| **Price Monitoring** | "Alert me if Bitcoin drops below $30k" |
+| **Trading Analysis** | "Analyze ETH price patterns over the last week" |
+| **Portfolio Tracking** | "Compare performance of BTC, ETH, and SOL" |
+| **Market Research** | "What are the top trending cryptos right now?" |
+| **Technical Signals** | "Calculate RSI and SMA for Bitcoin" |
+| **Market Sentiment** | "What's the Fear & Greed Index?" |
+
+## Data Sources
+
+- **Cryptocurrency**: Live data from major exchanges
+- **OHLCV Candles**: Multiple timeframes (1m to 1M)
+- **Order Books**: Real-time bid/ask spreads
+- **Market Cap**: CoinGecko/CoinMarketCap aggregated data
+- **Fear & Greed**: Crypto sentiment index
+
+## Technical Analysis Features
+
+### Indicators Available
+- **RSI** (Relative Strength Index) - Momentum indicator
+- **SMA** (Simple Moving Average) - Trend indicator
+- **Volatility** - Price variation measurement
+- **Z-Score** - Statistical deviation from mean
+
+### Interpretation
+
+| RSI Value | Signal | Action |
+|-----------|--------|--------|
+| > 70 | Overbought | Consider selling |
+| 30-70 | Neutral | Hold |
+| < 30 | Oversold | Consider buying |
+
+## Example Workflows
+
+### Daily Trading Analysis
+
+```javascript
+// 1. Check current price
+price("BTC")
+
+// 2. Get 24h candles (hourly)
+candles({ symbol: "BTC", interval: "1h", limit: 24 })
+
+// 3. Technical analysis
+analyze({ symbol: "BTC", interval: "1d" })
+
+// 4. Check order book depth
+order_book({ symbol: "BTC", limit: 20 })
+
+// 5. Fear & Greed sentiment
+feargreed()
+```
+
+### Portfolio Comparison
+
+```javascript
+// Compare multiple assets
+compare({ symbols: ["BTC", "ETH", "SOL", "ADA", "DOT"] })
+
+// Returns:
+// - Current prices
+// - 24h change %
+// - Market cap
+// - Volume
+// - Ranking
+```
+
+### Market Discovery
+
+```javascript
+// 1. Top by market cap
+market_cap({ limit: 20 })
+
+// 2. Trending coins
+trending()
+
+// 3. Analyze a trending coin
+analyze({ symbol: "PEPE", interval: "1h" })
+```
+
+## Supported Intervals
+
+- `1m` - 1 minute candles
+- `5m` - 5 minute candles
+- `15m` - 15 minute candles
+- `1h` - 1 hour candles
+- `4h` - 4 hour candles
+- `1d` - Daily candles
+- `1w` - Weekly candles
+- `1M` - Monthly candles
+
 ## Example Questions for Claude
 
 1. "What's the current price of Bitcoin?"
@@ -138,3 +244,11 @@ Get Fear & Greed Index:
 4. "Perform technical analysis on BTC with daily intervals"
 5. "Compare BTC, ETH, and SOL side by side"
 6. "What's the current crypto Fear & Greed Index?"
+7. "Is Bitcoin oversold or overbought right now?"
+8. "What's the 50-day moving average for Ethereum?"
+
+## Related Flakes
+
+- **sequentialthinking** - Complex market analysis
+- **memory** - Track trading patterns over time
+- **sqlite** - Store historical price data

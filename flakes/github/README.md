@@ -1,4 +1,8 @@
-# GitHub API MCP Server
+# 🐙 GitHub API MCP Server
+
+![GitHub](https://img.shields.io/badge/GitHub-API-181717?logo=github)
+![MCP](https://img.shields.io/badge/MCP-0.6.2-blue)
+![MIT](https://img.shields.io/badge/License-MIT-green)
 
 A comprehensive Model Context Protocol server for the GitHub API, enabling file operations, repository management, search functionality, PR workflows, and complete GitHub automation.
 
@@ -304,18 +308,34 @@ docker run -i --rm \
   mcp/github:0.6.2
 ```
 
+## Quick Start
+
+```bash
+# 1. Get a GitHub Personal Access Token
+# Visit: https://github.com/settings/tokens
+# Scopes: repo (for private) or public_repo (for public only)
+
+# 2. Run the server
+docker run -i --rm \
+  -e GITHUB_PERSONAL_ACCESS_TOKEN="ghp_your_token_here" \
+  mcp/github:0.6.2
+```
+
 ## Use Cases
 
 ### Automated Code Updates
 ```
 "Update the README.md in my repo to include the new installation instructions"
 "Create a new branch called 'feature/api-updates' and add these API changes"
+"Push these 5 files to the repo in a single commit"
 ```
 
 ### Issue Management
 ```
 "Create an issue for the memory leak in the user service"
 "List all open issues labeled 'bug' and 'high-priority'"
+"Add a comment to issue #42 with the latest findings"
+"Update issue #123 to closed state"
 ```
 
 ### Pull Request Workflows
@@ -323,18 +343,69 @@ docker run -i --rm \
 "Create a PR from feature-branch to main with these changes"
 "Review the latest PR and approve it if tests pass"
 "Merge PR #42 using squash merge"
+"Get the status of all checks on PR #10"
+"List all files changed in PR #15"
 ```
 
 ### Code Search
 ```
 "Search for all usages of the deprecated API function across my repositories"
 "Find TypeScript files that import the old authentication module"
+"Search for 'TODO' comments in the src/ directory"
+"Find all issues mentioning 'security' that are still open"
 ```
 
 ### Repository Management
 ```
 "Fork the popular-project/awesome-repo to my account"
 "Create a new private repository called 'internal-tools'"
+"Search for repositories with 'machine-learning' in the name"
+```
+
+## Example Workflow: Complete Feature Development
+
+```bash
+# 1. Create feature branch
+create_branch(owner="myuser", repo="myapp", branch="feature/auth")
+
+# 2. Push multiple files
+push_files(
+  owner="myuser", 
+  repo="myapp", 
+  branch="feature/auth",
+  files=[
+    {path: "src/auth.ts", content: "..."},
+    {path: "tests/auth.test.ts", content: "..."}
+  ],
+  message="Add authentication module"
+)
+
+# 3. Create pull request
+create_pull_request(
+  owner="myuser",
+  repo="myapp",
+  title="Add authentication module",
+  head="feature/auth",
+  base="main",
+  body="Implements JWT authentication"
+)
+
+# 4. Review and approve (after checks pass)
+create_pull_request_review(
+  owner="myuser",
+  repo="myapp",
+  pull_number=42,
+  event="APPROVE",
+  body="LGTM"
+)
+
+# 5. Merge PR
+merge_pull_request(
+  owner="myuser",
+  repo="myapp",
+  pull_number=42,
+  merge_method="squash"
+)
 ```
 
 ## Security Considerations
@@ -394,6 +465,19 @@ This flake is built from the official MCP servers repository:
 - **Server Version**: 0.6.2
 - **MCP SDK**: 1.0.1
 - **Node.js**: 22
+
+## Related Flakes
+
+- **git** - Local Git repository operations
+- **gitlab** - GitLab API integration (if available)
+- **filesystem** - File system operations
+
+## Tips
+
+- Use `push_files` instead of multiple `create_or_update_file` calls for atomic commits
+- Always check PR status before merging
+- Use search tools to find code patterns across repositories
+- For large-scale operations, consider rate limits (5000 req/hour)
 
 ## License
 

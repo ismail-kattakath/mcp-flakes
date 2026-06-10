@@ -72,7 +72,9 @@ build:
   dockerfile: Dockerfile
 
 runtime:
-  entrypoint: ["node", "dist/index.js"]
+  entrypoint: ["pnpm", "run", "dev", "--", "--port", "8787", "--ip", "0.0.0.0"]
+  transport: http
+  port: 8787
 
 notes: |
   - Requires Cloudflare API token with Workers, KV, R2, D1, and Hyperdrive permissions

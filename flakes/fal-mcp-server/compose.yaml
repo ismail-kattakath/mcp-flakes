@@ -1,0 +1,11 @@
+name: fal-mcp-server
+services:
+  fal-mcp-server:
+    image: ghcr.io/aloshy-ai/mcp-flakes/fal-mcp-server:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    stdin_open: true
+    tty: false
+    environment:
+      - FAL_KEY=${FAL_KEY}

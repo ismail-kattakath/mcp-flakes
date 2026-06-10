@@ -31,9 +31,12 @@ RUN git clone https://github.com/cloudflare/mcp-server-cloudflare.git . && \
 # Install dependencies with frozen lockfile
 RUN pnpm install --frozen-lockfile
 
-# Build the workers-bindings app
+# Set working directory to workers-bindings app
 WORKDIR /repo/apps/workers-bindings
-RUN pnpm run build
 
-# Set entrypoint (the build output is in dist/)
-ENTRYPOINT ["node", "dist/index.js"]
+# Expose port for wrangler dev (default 8787)
+EXPOSE 8787
+
+# Set entrypoint to run wrangler dev server
+# This runs the Cloudflare Worker locally using Wrangler
+ENTRYPOINT ["pnpm", "run", "dev", "--", "--port", "8787", "--ip", "0.0.0.0"]

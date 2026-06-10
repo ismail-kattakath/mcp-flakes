@@ -49,9 +49,16 @@ CLOUDFLARE_API_TOKEN=your-cloudflare-api-token
 CLOUDFLARE_ACCOUNT_ID=your-account-id
 EOF
 
-# Run the server
-docker compose run --rm mcp-cloudflare-workers
+# Run the server (HTTP mode)
+docker compose up -d mcp-cloudflare-workers
+
+# Access the MCP endpoint at:
+# http://localhost:8787/mcp
 ```
+
+## Transport
+
+This server uses **HTTP transport** and runs via Wrangler dev locally. It exposes an HTTP endpoint at port 8787.
 
 ## Required Configuration
 

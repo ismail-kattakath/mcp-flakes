@@ -1,6 +1,10 @@
-# MCP Compress Server Flake
+# 🗜️ MCP Compress Server Flake
 
-Data compression server for AI agents. Compress and decompress data using multiple algorithms (gzip, brotli, deflate, zstd) with built-in storage. Zero dependencies - uses only Node.js built-in zlib module.
+![Node.js](https://img.shields.io/badge/Node.js-Zero_Dependencies-339933?logo=node.js)
+![Algorithms](https://img.shields.io/badge/Algorithms-4-blue)
+![MIT](https://img.shields.io/badge/License-MIT-green)
+
+Data compression server for AI agents. Compress and decompress data using multiple algorithms (gzip, brotli, deflate, zstd) with built-in storage. **Zero dependencies** - uses only Node.js built-in zlib module.
 
 ## Upstream
 
@@ -114,6 +118,99 @@ Get compression statistics:
 }
 ```
 
+## Quick Start
+
+```bash
+# Start the server
+cd flakes/mcp-compress
+docker compose run --rm mcp-compress
+```
+
+## Use Cases
+
+| Use Case | Example |
+|----------|---------|
+| **API Response Caching** | Compress and store large API responses |
+| **Log Compression** | Compress log data before storage |
+| **Data Transfer** | Reduce data size for efficient transfer |
+| **Storage Optimization** | Compress JSON/CSV datasets |
+| **Algorithm Selection** | Analyze and choose best compression algorithm |
+
+## Algorithm Comparison
+
+| Algorithm | Speed | Ratio | Best For |
+|-----------|-------|-------|----------|
+| **gzip** | Fast | Good | General purpose, HTTP responses |
+| **brotli** | Slower | Better | Web assets, static content |
+| **deflate** | Fast | Good | Legacy compatibility |
+| **zstd** | Fastest | Best | Real-time compression, large datasets |
+| **auto** | - | - | Automatic selection based on data |
+
+## Example Workflows
+
+### Compress and Store Large Dataset
+
+```javascript
+// 1. Analyze compressibility
+{
+  "name": "analyze",
+  "arguments": {
+    "data": "{\"users\": [/* 10000 users */]}"
+  }
+}
+// Returns: { gzip: 85%, brotli: 88%, zstd: 90% }
+
+// 2. Store with best algorithm
+{
+  "name": "store",
+  "arguments": {
+    "key": "users-dataset",
+    "data": "{\"users\": [/* 10000 users */]}",
+    "algorithm": "zstd"
+  }
+}
+
+// 3. Later, retrieve it
+{
+  "name": "retrieve",
+  "arguments": {
+    "key": "users-dataset"
+  }
+}
+```
+
+### Compress API Response
+
+```javascript
+// Compress JSON API response
+{
+  "name": "compress",
+  "arguments": {
+    "data": "{\"results\": [...], \"metadata\": {...}}",
+    "algorithm": "gzip"
+  }
+}
+// Returns: compressed base64 string
+
+// Later, decompress
+{
+  "name": "decompress",
+  "arguments": {
+    "data": "H4sIAAAAAAAA...",
+    "algorithm": "gzip"
+  }
+}
+```
+
+## Typical Compression Ratios
+
+| Data Type | Original | Compressed | Ratio |
+|-----------|----------|------------|-------|
+| JSON (repetitive) | 1 MB | 100 KB | 90% |
+| CSV data | 5 MB | 800 KB | 84% |
+| Log files | 10 MB | 1 MB | 90% |
+| Plain text | 1 MB | 300 KB | 70% |
+
 ## Example Questions for Claude
 
 1. "Can you analyze this JSON data and tell me how much it would compress?"
@@ -121,3 +218,10 @@ Get compression statistics:
 3. "Store this dataset under the key 'user-data' with compression"
 4. "Retrieve the data I stored earlier as 'user-data'"
 5. "Show me compression statistics for all stored data"
+6. "What's the best compression algorithm for this CSV data?"
+
+## Related Flakes
+
+- **filesystem** - File operations
+- **sqlite** - Structured data storage
+- **postgres** - Database operations

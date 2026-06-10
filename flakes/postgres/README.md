@@ -1,6 +1,10 @@
-# PostgreSQL MCP Server
+# 🐘 PostgreSQL MCP Server
 
-A Model Context Protocol server that provides **read-only** access to PostgreSQL databases. This server enables LLMs to inspect database schemas and execute read-only SQL queries.
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql)
+![Read Only](https://img.shields.io/badge/Access-Read--Only-success)
+![MCP](https://img.shields.io/badge/MCP-0.6.2-blue)
+
+Safe **read-only** access to PostgreSQL databases for AI agents. Inspect schemas, query data, and analyze databases without risk of data modification.
 
 ## Features
 
@@ -167,6 +171,181 @@ This flake is built from the official MCP servers repository:
 - **Server Version**: 0.6.2
 - **MCP SDK**: 1.0.1
 - **Node.js**: 22
+
+## Quick Start
+
+```bash
+# 1. Set your database URL
+export POSTGRES_URL="postgresql://user:pass@host:5432/mydb"
+
+# 2. Run the server
+docker run -i --rm \
+  -e POSTGRES_URL \
+  mcp/postgres:0.6.2
+```
+
+## Use Cases
+
+| Use Case | Example |
+|----------|---------|
+| **Data Analysis** | "Show me top 10 customers by revenue" |
+| **Schema Discovery** | "What tables exist in this database?" |
+| **Query Generation** | "Find all orders from last month" |
+| **Data Validation** | "Check for duplicate email addresses" |
+| **Reporting** | "Generate a sales summary by region" |
+| **Database Exploration** | "Describe the users table structure" |
+
+## Example Workflows
+
+### Explore Database Schema
+
+```sql
+-- List all tables (via resources)
+-- The server automatically exposes schema for each table
+
+-- Example resource URL:
+postgres://myhost/users/schema
+postgres://myhost/orders/schema
+postgres://myhost/products/schema
+```
+
+### Analyze Customer Data
+
+```sql
+-- Get customer distribution by country
+SELECT country, COUNT(*) as customer_count
+FROM customers
+GROUP BY country
+ORDER BY customer_count DESC
+LIMIT 10;
+
+-- Find high-value customers
+SELECT 
+  c.name,
+  c.email,
+  SUM(o.total) as lifetime_value
+FROM customers c
+JOIN orders o ON c.id = o.customer_id
+GROUP BY c.id, c.name, c.email
+HAVING SUM(o.total) > 10000
+ORDER BY lifetime_value DESC;
+```
+
+### Check Data Quality
+
+```sql
+-- Find duplicate emails
+SELECT email, COUNT(*) as count
+FROM users
+GROUP BY email
+HAVING COUNT(*) > 1;
+
+-- Check for NULL values
+SELECT 
+  COUNT(*) as total,
+  COUNT(email) as with_email,
+  COUNT(*) - COUNT(email) as missing_email
+FROM users;
+```
+
+### Generate Reports
+
+```sql
+-- Monthly revenue report
+SELECT 
+  DATE_TRUNC('month', created_at) as month,
+  COUNT(*) as order_count,
+  SUM(total) as revenue
+FROM orders
+WHERE created_at >= NOW() - INTERVAL '12 months'
+GROUP BY month
+ORDER BY month DESC;
+```
+
+## Connection Patterns
+
+### Local Development
+
+```bash
+POSTGRES_URL="postgresql://localhost:5432/dev_db"
+```
+
+### Docker to Host (macOS/Windows)
+
+```bash
+POSTGRES_URL="postgresql://user:pass@host.docker.internal:5432/mydb"
+```
+
+### Remote Database
+
+```bash
+POSTGRES_URL="postgresql://user:pass@db.example.com:5432/mydb?sslmode=require"
+```
+
+### Connection Pooling
+
+```bash
+POSTGRES_URL="postgresql://user:pass@pooler.example.com:6543/mydb"
+```
+
+## URL Parameters
+
+Enhance connection string with parameters:
+
+| Parameter | Example | Purpose |
+|-----------|---------|---------|
+| `sslmode` | `?sslmode=require` | Enforce SSL/TLS |
+| `connect_timeout` | `?connect_timeout=10` | Connection timeout (seconds) |
+| `application_name` | `?application_name=mcp-server` | Identify in pg_stat_activity |
+
+## Safety Features
+
+- **Read-Only Transactions**: All queries wrapped in `BEGIN READ ONLY` / `COMMIT`
+- **No DDL**: CREATE, DROP, ALTER blocked
+- **No DML**: INSERT, UPDATE, DELETE blocked
+- **No Admin**: GRANT, REVOKE, user management blocked
+- **Schema Inspection**: Safe metadata access only
+
+## Performance Tips
+
+### Use LIMIT for Large Tables
+
+```sql
+-- Good: Limited results
+SELECT * FROM large_table LIMIT 100;
+
+-- Avoid: Full table scan
+SELECT * FROM large_table;
+```
+
+### Index-Friendly Queries
+
+```sql
+-- Good: Uses index
+SELECT * FROM users WHERE id = 123;
+
+-- Slower: Function on indexed column
+SELECT * FROM users WHERE LOWER(email) = 'user@example.com';
+```
+
+### Aggregate with WHERE
+
+```sql
+-- Good: Filter before aggregate
+SELECT COUNT(*) FROM orders 
+WHERE status = 'completed';
+
+-- Slower: Aggregate then filter
+SELECT COUNT(*) FROM orders 
+GROUP BY status 
+HAVING status = 'completed';
+```
+
+## Related Flakes
+
+- **sqlite** - SQLite database access (read-write)
+- **filesystem** - File operations
+- **memory** - Knowledge graph storage
 
 ## License
 

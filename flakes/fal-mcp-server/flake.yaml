@@ -1,0 +1,68 @@
+name: fal-mcp-server
+upstream:
+  repo: https://github.com/raveenb/fal-mcp-server
+  commit: 398fe93e6e8ad271e4f180ee60d70567a6717c84
+  license: MIT
+runner: python
+build:
+  install: uv pip install --system .
+  entrypoint: ["fal-mcp"]
+transport: stdio
+env:
+  - name: FAL_KEY
+    required: true
+    secret: true
+    description: Fal.ai API key (get from https://fal.ai)
+tools:
+  - generate_image
+  - generate_image_structured
+  - generate_image_from_image
+  - remove_background
+  - upscale_image
+  - edit_image
+  - inpaint_image
+  - resize_image
+  - compose_images
+  - generate_video
+  - generate_video_from_image
+  - generate_video_from_video
+  - generate_music
+  - list_models
+  - recommend_model
+  - get_pricing
+  - get_usage
+  - upload_file
+publish_image: true
+compliance:
+  upstream_license: MIT
+  upstream_author: Raveen Bhagavandas
+  upstream_copyright: "Copyright (c) 2025 Raveen Bhagavandas"
+  attribution_file: ATTRIBUTION.md
+  license_verified: true
+  license_url: https://github.com/raveenb/fal-mcp-server/blob/398fe93e6e8ad271e4f180ee60d70567a6717c84/LICENSE
+labels:
+  category: creative
+  subcategories:
+    - image-generation
+    - image-editing
+    - video-generation
+    - music-generation
+  capabilities:
+    - text-to-image
+    - image-to-image
+    - text-to-video
+    - image-to-video
+    - video-to-video
+    - text-to-music
+    - background-removal
+    - upscaling
+    - inpainting
+    - 600-plus-models
+  models:
+    - flux
+    - stable-diffusion
+    - musicgen
+  features:
+    - dynamic-model-discovery
+    - pricing-info
+    - usage-tracking

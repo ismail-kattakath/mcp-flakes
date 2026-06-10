@@ -1,8 +1,8 @@
 # MCP Unbrowser Server Flake
 # Built from: github.com/protostatis/unbrowser @ 3936108c5f3762a12be3576cd65e4b1f899aaaae
 
-# Builder stage
-FROM rust:1.83-bookworm AS builder
+# Builder stage - using nightly for edition2024 support
+FROM rustlang/rust:nightly-bookworm AS builder
 
 LABEL org.opencontainers.image.source="https://github.com/protostatis/unbrowser"
 LABEL org.opencontainers.image.authors="Unchained/protostatis"
@@ -16,7 +16,9 @@ RUN apt-get update && \
         git \
         ca-certificates \
         pkg-config \
-        libssl-dev && \
+        libssl-dev \
+        cmake \
+        g++ && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /build

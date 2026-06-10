@@ -1,6 +1,10 @@
-# MCP Sequential Thinking Server Flake
+# 🧩 MCP Sequential Thinking Server Flake
 
-Provides a tool for dynamic and reflective problem-solving through structured thinking processes.
+![Reasoning](https://img.shields.io/badge/Reasoning-Structured-blueviolet)
+![Problem Solving](https://img.shields.io/badge/Problem_Solving-Dynamic-success)
+![MIT](https://img.shields.io/badge/License-MIT-green)
+
+Dynamic and reflective problem-solving through structured thinking processes. Break down complex problems, revise understanding, and explore alternative reasoning paths.
 
 ## Upstream
 

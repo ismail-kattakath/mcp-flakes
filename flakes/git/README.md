@@ -1,6 +1,6 @@
-# MCP Git Server Flake
+# 🌿 MCP Git Server Flake
 
-Provides Git repository operations for MCP clients - read, search, and manipulate Git repositories.
+Complete Git repository operations for AI agents - inspect history, manage branches, and create commits with Git LFS support.
 
 ## Upstream
 
@@ -108,8 +108,103 @@ docker run -i --rm \
 
 This server uses stdio transport. It expects MCP protocol messages on stdin and writes responses to stdout.
 
+## Quick Start
+
+```bash
+# 1. Mount your repository
+docker run -i --rm \
+  -v /path/to/your/repo:/repo \
+  ghcr.io/mcp-flakes/git:latest
+
+# 2. Or use Docker Compose
+cd flakes/git
+docker compose run --rm mcp-git
+```
+
+## Use Cases
+
+| Use Case | Example |
+|----------|---------|
+| **History Analysis** | "Show me all commits from last week" |
+| **Branch Management** | "Create a feature branch from main" |
+| **Code Review** | "Show me the diff for the last commit" |
+| **Commit Operations** | "Stage all modified files and commit with message" |
+| **Repository Inspection** | "List all branches containing commit abc123" |
+
+## Examples
+
+### View Recent History with Date Filtering
+
+```json
+{
+  "name": "git_log",
+  "arguments": {
+    "repo_path": "/repo",
+    "max_count": 20,
+    "start_timestamp": "2024-01-01",
+    "end_timestamp": "2024-12-31"
+  }
+}
+```
+
+### Create Feature Branch and Stage Changes
+
+```json
+// 1. Create branch
+{
+  "name": "git_create_branch",
+  "arguments": {
+    "repo_path": "/repo",
+    "branch_name": "feature/new-api",
+    "base_branch": "main"
+  }
+}
+
+// 2. Checkout branch
+{
+  "name": "git_checkout",
+  "arguments": {
+    "repo_path": "/repo",
+    "branch_name": "feature/new-api"
+  }
+}
+
+// 3. Stage files
+{
+  "name": "git_add",
+  "arguments": {
+    "repo_path": "/repo",
+    "files": ["src/api.ts", "tests/api.test.ts"]
+  }
+}
+```
+
+### Compare Branches
+
+```json
+{
+  "name": "git_diff",
+  "arguments": {
+    "repo_path": "/repo",
+    "target": "main..feature/new-api",
+    "context_lines": 5
+  }
+}
+```
+
 ## Notes
 
-- Git LFS is supported and pre-configured
-- All git operations are performed within the container's filesystem
-- For security, mount only the specific repositories you want to access
+- **Git LFS Support**: Large File Storage is pre-configured
+- **Container Isolation**: All operations run in secure container
+- **Security**: Mount only specific repositories you want to access
+- **Read/Write**: Full read and write access to mounted repositories
+
+## Related Flakes
+
+- **github** - GitHub API integration for PR/issue workflows
+- **filesystem** - File system operations
+- **gitlab** - GitLab API integration (if available)
+
+## MCP Protocol
+
+This server uses stdio transport. It expects MCP protocol messages on stdin and writes responses to stdout.
