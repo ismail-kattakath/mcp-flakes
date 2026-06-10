@@ -23,7 +23,7 @@ RUN git clone https://github.com/StacklokLabs/ocireg-mcp.git . && \
 
 # Build the binary with GOTOOLCHAIN auto to download newer Go if needed
 ENV GOTOOLCHAIN=auto
-RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o ocireg-mcp ./cmd/ocireg-mcp
+RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o ocireg-mcp ./cmd/server
 
 # Runtime stage
 FROM alpine:latest

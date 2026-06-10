@@ -1,6 +1,10 @@
-# photopea-mcp-server
+# 🎨 Photopea MCP Server
 
-AI-powered image editing through Photopea with 34 tools for documents, layers, text, shapes, filters, effects, and export.
+![Photopea](https://img.shields.io/badge/Photopea-Web_Based-18A497)
+![Tools](https://img.shields.io/badge/Tools-34-success)
+![Node.js](https://img.shields.io/badge/Node.js-18+-339933?logo=node.js)
+
+AI-powered professional image editing through Photopea with **34 tools** for documents, layers, text, shapes, filters, effects, and export. Full Photoshop-like capabilities through natural language.
 
 **Upstream**: [attalla1/photopea-mcp-server](https://github.com/attalla1/photopea-mcp-server)
 
@@ -142,6 +146,390 @@ Create a 1200x630 document, place ~/assets/background.png as the base layer, the
 - Refreshing the browser page will discard all unsaved work
 - The `photopea_run_script` tool is marked as destructive and requires user approval
 - Heavy scripts may cause UI unresponsiveness (operations complete in background)
+
+## Quick Start
+
+```bash
+# 1. Start the server
+cd flakes/photopea-mcp-server
+docker compose up
+
+# 2. Open browser to http://localhost:3000
+# 3. AI can now control Photopea through MCP
+```
+
+## Use Cases
+
+| Use Case | Example |
+|----------|---------|
+| **Social Media Graphics** | "Create a 1080x1080 Instagram post with gradient background" |
+| **Photo Editing** | "Open this photo, increase brightness by 20%, apply gaussian blur 5px" |
+| **Poster Design** | "Create a poster with title, subtitle, and background image" |
+| **Text Overlays** | "Add white text 'SALE' at the top center in 72px bold" |
+| **Layer Compositing** | "Place logo.png, resize to 200x200, move to top-right" |
+| **Batch Effects** | "Apply these filters to the current document" |
+
+## Example Workflows
+
+### Create Social Media Post
+
+```javascript
+// 1. Create document
+photopea_create_document({
+  width: 1080,
+  height: 1080,
+  name: "Instagram Post",
+  backgroundColor: "#667eea"
+})
+
+// 2. Add gradient background
+photopea_add_gradient({
+  startColor: "#667eea",
+  endColor: "#764ba2",
+  angle: 45
+})
+
+// 3. Add title text
+photopea_add_text({
+  content: "Summer Sale",
+  x: 540,
+  y: 400,
+  fontSize: 96,
+  fontFamily: "Arial",
+  color: "#ffffff",
+  bold: true
+})
+
+// 4. Add subtitle
+photopea_add_text({
+  content: "Up to 50% Off",
+  x: 540,
+  y: 680,
+  fontSize: 48,
+  fontFamily: "Arial",
+  color: "#ffffff"
+})
+
+// 5. Export
+photopea_export_image({
+  format: "PNG",
+  quality: 100
+})
+```
+
+### Edit Photo with Filters
+
+```javascript
+// 1. Open photo
+photopea_open_file({
+  path: "https://example.com/photo.jpg"
+})
+
+// 2. Adjust brightness/contrast
+photopea_apply_adjustment({
+  type: "brightness_contrast",
+  brightness: 30,
+  contrast: 20
+})
+
+// 3. Apply gaussian blur
+photopea_apply_filter({
+  type: "gaussian_blur",
+  radius: 2
+})
+
+// 4. Export as JPG
+photopea_export_image({
+  format: "JPG",
+  quality: 90
+})
+```
+
+### Composite Multiple Images
+
+```javascript
+// 1. Create base document
+photopea_create_document({
+  width: 1920,
+  height: 1080,
+  name: "Composite"
+})
+
+// 2. Place background
+photopea_place_image({
+  url: "https://example.com/background.jpg"
+})
+
+// 3. Place logo
+photopea_place_image({
+  url: "https://example.com/logo.png"
+})
+
+// 4. Move logo to corner
+photopea_move_layer({
+  x: 1700,
+  y: 100
+})
+
+// 5. Set logo opacity
+photopea_set_layer_properties({
+  opacity: 80
+})
+```
+
+### Add Text with Custom Font
+
+```javascript
+// 1. Load custom font
+photopea_load_font({
+  url: "https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Me5WZLCzYlKw.ttf"
+})
+
+// 2. Add text with custom font
+photopea_add_text({
+  content: "Modern Design",
+  x: 960,
+  y: 540,
+  fontSize: 72,
+  fontFamily: "Roboto",
+  color: "#2d3748",
+  bold: true
+})
+```
+
+### Create Layered Design
+
+```javascript
+// 1. Create document
+photopea_create_document({ width: 800, height: 600 })
+
+// 2. Add background fill layer
+photopea_add_fill_layer({
+  name: "Background",
+  color: "#f7fafc"
+})
+
+// 3. Add shape
+photopea_add_shape({
+  type: "rectangle",
+  x: 100,
+  y: 100,
+  width: 600,
+  height: 400,
+  color: "#4299e1"
+})
+
+// 4. Add text on top
+photopea_add_text({
+  content: "Content",
+  x: 400,
+  y: 300,
+  fontSize: 48,
+  color: "#ffffff"
+})
+
+// 5. Group layers
+photopea_group_layers({
+  layerNames: ["Shape", "Text"],
+  groupName: "Card"
+})
+```
+
+## Advanced Features
+
+### Layer Management
+
+```javascript
+// Get layer tree
+layers = photopea_get_layers()
+
+// Reorder layer
+photopea_reorder_layer({
+  layerName: "Logo",
+  position: "top"
+})
+
+// Duplicate layer
+photopea_duplicate_layer({
+  layerName: "Background",
+  newName: "Background Copy"
+})
+
+// Group layers
+photopea_group_layers({
+  layerNames: ["Layer1", "Layer2"],
+  groupName: "MyGroup"
+})
+```
+
+### Blend Modes
+
+Available blend modes:
+- Normal
+- Multiply
+- Screen
+- Overlay
+- Soft Light
+- Hard Light
+- Color Dodge
+- Color Burn
+- Darken
+- Lighten
+
+```javascript
+photopea_set_layer_properties({
+  blendMode: "multiply",
+  opacity: 75
+})
+```
+
+### Filters
+
+Available filters:
+- **gaussian_blur** - Blur effect
+- **sharpen** - Enhance details
+- **unsharp_mask** - Professional sharpening
+- **noise** - Add grain
+- **motion_blur** - Movement effect
+
+```javascript
+photopea_apply_filter({
+  type: "unsharp_mask",
+  amount: 80,
+  radius: 1.5,
+  threshold: 0
+})
+```
+
+### Adjustments
+
+Available adjustments:
+- **brightness_contrast** - Brightness and contrast
+- **hue_saturation** - Color adjustments
+- **levels** - Tonal range
+- **curves** - Advanced tonal control
+
+```javascript
+photopea_apply_adjustment({
+  type: "hue_saturation",
+  hue: 15,
+  saturation: 25,
+  lightness: 0
+})
+```
+
+### Export Formats
+
+| Format | Use Case | Quality |
+|--------|----------|---------|
+| **PNG** | Transparency, web graphics | Lossless |
+| **JPG** | Photos, no transparency | Lossy (1-100) |
+| **WebP** | Modern web format | Lossy/Lossless |
+| **PSD** | Photoshop compatibility | Layers preserved |
+| **SVG** | Vector graphics | Scalable |
+
+## Selections
+
+```javascript
+// Make rectangular selection
+photopea_make_selection({
+  type: "rectangle",
+  x: 100,
+  y: 100,
+  width: 500,
+  height: 300
+})
+
+// Feather selection
+photopea_modify_selection({
+  operation: "feather",
+  amount: 10
+})
+
+// Fill selection
+photopea_fill_selection({
+  color: "#ff6b6b"
+})
+```
+
+## Transform Operations
+
+```javascript
+photopea_transform_layer({
+  scaleX: 1.5,
+  scaleY: 1.5,
+  rotation: 45,
+  flip: "horizontal"
+})
+```
+
+## Undo/Redo
+
+```javascript
+// Undo last 3 actions
+photopea_undo({ steps: 3 })
+
+// Redo 2 actions
+photopea_redo({ steps: 2 })
+```
+
+## Font Management
+
+```javascript
+// List all available fonts
+fonts = photopea_list_fonts()
+
+// Search for specific font
+arial_fonts = photopea_list_fonts({ filter: "Arial" })
+
+// Load custom font
+photopea_load_font({
+  url: "https://example.com/fonts/CustomFont.ttf"
+})
+```
+
+## Browser Requirements
+
+- **Modern browser** (Chrome, Firefox, Edge, Safari)
+- **JavaScript enabled**
+- **WebSocket support**
+- **Access to localhost:3000**
+
+## Important Notes
+
+- ⚠️ **Single Tab**: Only one browser tab should access Photopea at a time
+- 🔄 **No Auto-Save**: Refreshing browser discards unsaved work
+- 🔒 **Destructive Tools**: `photopea_run_script` requires user approval
+- 🐌 **Heavy Scripts**: Complex operations may cause temporary UI freeze
+
+## Advanced: Custom Scripts
+
+```javascript
+// Execute custom Photopea script (requires approval)
+photopea_run_script({
+  script: `
+    var doc = app.activeDocument;
+    var layer = doc.activeLayer;
+    layer.opacity = 50;
+  `
+})
+```
+
+## Related Flakes
+
+- **pixel-surgeon-mcp** - AI image generation and editing
+- **excalidraw-architect-mcp** - Architecture diagrams
+- **unbrowser** - Web automation for image sources
+
+## Tips
+
+- **Fonts**: Load custom fonts before creating text layers
+- **Layers**: Use meaningful names for easier layer management
+- **Groups**: Group related layers for organization
+- **Export**: Choose format based on use case (PNG for web, PSD for editing)
+- **Blend Modes**: Experiment with blend modes for creative effects
+- **Selections**: Use feathering for smooth edges
+- **Undo**: Don't hesitate to undo and try different approaches
 
 ## License
 

@@ -5,7 +5,7 @@ upstream:
   license: Apache-2.0
 runner: go
 build:
-  install: go build -o ocireg-mcp ./cmd/ocireg-mcp
+  install: go build -o ocireg-mcp ./cmd/server
   entrypoint: ["ocireg-mcp"]
 transport: sse
 env:
