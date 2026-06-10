@@ -1,0 +1,26 @@
+name: shahnameh-mcp-server
+version: 0.1.0
+description: MCP server for accessing the Shahnameh (Book of Kings) Persian epic poem by Ferdowsi
+runner: python
+source:
+  repo: https://github.com/aliafsahnoudeh/shahnameh-mcp-server
+  commit: 5d932ee2a812637ac82bf1fe7caffcbc6a5e921b
+build:
+  type: source
+  requires_api: true
+tools:
+  - name: get_chapters
+    description: Get all chapters of Shahnameh with their sub-chapters
+  - name: get_chapter_by_id
+    description: Get a specific chapter by its ID
+  - name: get_verses
+    description: Get verses from Shahnameh
+  - name: search_verses
+    description: Search for verses by keyword
+  - name: get_explanations
+    description: Get explanations for verses
+env:
+  - name: SHAHNAMEH_API_BASE
+    description: Base URL for the Shahnameh API backend
+    required: true
+    default: http://host.docker.internal:8000/api/v1

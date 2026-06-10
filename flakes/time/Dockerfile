@@ -42,5 +42,5 @@ ENV PATH="/app/.venv/bin:$PATH"
 # Set the LOCAL_TIMEZONE environment variable
 ENV LOCAL_TIMEZONE=UTC
 
-# Use shell form to allow variable expansion
-ENTRYPOINT ["/bin/sh", "-c", "mcp-server-time --local-timezone \"${LOCAL_TIMEZONE}\""]
+# Use shell form with python module to avoid shebang path issues and allow variable expansion
+ENTRYPOINT ["/bin/sh", "-c", "python -m mcp_server_time --local-timezone \"${LOCAL_TIMEZONE}\""]

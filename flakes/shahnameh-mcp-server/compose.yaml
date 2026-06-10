@@ -1,0 +1,12 @@
+services:
+  shahnameh-mcp-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mcp-flakes/shahnameh-mcp-server:latest
+    stdin_open: true
+    tty: false
+    environment:
+      # The API backend must be running separately
+      # Default assumes API is running on host machine
+      - SHAHNAMEH_API_BASE=${SHAHNAMEH_API_BASE:-http://host.docker.internal:8000/api/v1}

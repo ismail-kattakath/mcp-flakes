@@ -39,4 +39,5 @@ COPY --from=builder /repo/src/fetch/.venv /app/.venv
 # Place executables in the environment at the front of the path
 ENV PATH="/app/.venv/bin:$PATH"
 
-ENTRYPOINT ["mcp-server-fetch"]
+# Run with python directly to avoid shebang path issues
+ENTRYPOINT ["python", "-m", "mcp_server_fetch"]
