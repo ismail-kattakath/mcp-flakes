@@ -1,0 +1,126 @@
+name: mcp-searxng
+upstream:
+  repo: https://github.com/ihor-sokoliuk/mcp-searxng
+  commit: 80bdaf054b8e6da6429eb7a49ca9eaeb973de0ee
+  license: MIT
+runner: node
+build:
+  type: single-ts
+  install: npm ci
+  build: npm run build
+  entrypoint:
+    - node
+    - dist/cli.js
+  lockfile: package-lock.json
+transport: stdio
+env:
+  - name: SEARXNG_URL
+    required: true
+    secret: false
+    description: URL of your SearXNG instance
+  - name: AUTH_USERNAME
+    required: false
+    secret: false
+    description: HTTP Basic Auth username for password-protected SearXNG instances
+  - name: AUTH_PASSWORD
+    required: false
+    secret: true
+    description: HTTP Basic Auth password for password-protected SearXNG instances
+  - name: SEARXNG_TIMEOUT_MS
+    required: false
+    secret: false
+    description: Maximum time in milliseconds to wait for a SearXNG search response
+  - name: USER_AGENT
+    required: false
+    secret: false
+    description: Global User-Agent header for all outgoing requests
+  - name: URL_READER_USER_AGENT
+    required: false
+    secret: false
+    description: User-Agent for web_url_read only - overrides USER_AGENT for URL reads
+  - name: HTTP_PROXY
+    required: false
+    secret: false
+    description: Global HTTP proxy for all traffic
+  - name: HTTPS_PROXY
+    required: false
+    secret: false
+    description: Global HTTPS proxy for all traffic
+  - name: SEARCH_HTTP_PROXY
+    required: false
+    secret: false
+    description: HTTP proxy for searxng_web_search only
+  - name: SEARCH_HTTPS_PROXY
+    required: false
+    secret: false
+    description: HTTPS proxy for searxng_web_search only
+  - name: URL_READER_HTTP_PROXY
+    required: false
+    secret: false
+    description: HTTP proxy for web_url_read only
+  - name: URL_READER_HTTPS_PROXY
+    required: false
+    secret: false
+    description: HTTPS proxy for web_url_read only
+  - name: NO_PROXY
+    required: false
+    secret: false
+    description: Comma-separated proxy bypass list
+  - name: MCP_HTTP_PORT
+    required: false
+    secret: false
+    description: Port number to enable HTTP transport
+  - name: MCP_HTTP_HOST
+    required: false
+    secret: false
+    description: Interface address to bind to for HTTP mode
+  - name: MCP_RATE_WINDOW_MS
+    required: false
+    secret: false
+    description: Sliding window duration in milliseconds for rate limits in HTTP mode
+  - name: MCP_RATE_INIT_MAX
+    required: false
+    secret: false
+    description: Max POST /mcp requests per window in HTTP mode
+  - name: MCP_RATE_SESSION_MAX
+    required: false
+    secret: false
+    description: Max GET/DELETE /mcp requests per window in HTTP mode
+  - name: MCP_HTTP_HARDEN
+    required: false
+    secret: false
+    description: Enable hardened security features for HTTP transport
+  - name: MCP_HTTP_AUTH_TOKEN
+    required: false
+    secret: true
+    description: Required bearer token for all HTTP requests in hardened mode
+  - name: MCP_HTTP_ALLOWED_ORIGINS
+    required: false
+    secret: false
+    description: Comma-separated CORS origin allowlist for HTTP mode
+  - name: MCP_HTTP_ALLOWED_HOSTS
+    required: false
+    secret: false
+    description: Comma-separated DNS rebinding protection allowlist for HTTP mode
+  - name: MCP_HTTP_ALLOW_PRIVATE_URLS
+    required: false
+    secret: false
+    description: Allow web_url_read to fetch internal/private URLs
+  - name: MCP_HTTP_EXPOSE_FULL_CONFIG
+    required: false
+    secret: false
+    description: Expose full config details in /health response
+  - name: NODE_ENV
+    required: false
+    secret: false
+    description: Node.js environment mode
+tools:
+  - searxng_web_search
+  - web_url_read
+publish_image: true
+compliance:
+  license_verified: false
+  authors:
+    - Ihor Sokoliuk
+  copyright: © 2024 IS
+  last_checked: 2025-06-10
