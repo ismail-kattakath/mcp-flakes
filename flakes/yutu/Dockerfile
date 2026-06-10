@@ -41,4 +41,4 @@ RUN mkdir -p /root/.config/yutu
 
 ENV YUTU_CONFIG_DIR=/root/.config/yutu
 
-ENTRYPOINT ["/app/yutu", "mcp", "--stdio"]
+ENTRYPOINT ["/app/yutu", "mcp"]

@@ -1,0 +1,32 @@
+name: ocireg-mcp
+upstream:
+  repo: https://github.com/StacklokLabs/ocireg-mcp
+  commit: 095e395f13870329f0d106f6a422adb386b44d0e
+  license: Apache-2.0
+runner: go
+build:
+  install: go build -o ocireg-mcp ./cmd/ocireg-mcp
+  entrypoint: ["ocireg-mcp"]
+transport: sse
+env:
+  - name: PORT
+    required: false
+    secret: false
+    description: Port to listen on (default 8080)
+  - name: DOCKER_CONFIG
+    required: false
+    secret: false
+    description: Path to Docker config for registry authentication
+tools:
+  - get_image_info
+  - list_tags
+  - get_manifest
+  - get_config
+resources:
+  - oci_registry_documentation
+publish_image: true
+compliance:
+  license_verified: true
+  authors: ["Stacklok, Inc."]
+  copyright: "Copyright 2024 Stacklok, Inc."
+  last_checked: 2026-06-09

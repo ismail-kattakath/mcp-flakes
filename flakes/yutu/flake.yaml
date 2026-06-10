@@ -6,7 +6,7 @@ upstream:
 runner: go
 build:
   install: go build -o yutu .
-  entrypoint: ["yutu", "mcp", "--stdio"]
+  entrypoint: ["yutu", "mcp"]
 transport: stdio
 env:
   - name: GOOGLE_APPLICATION_CREDENTIALS

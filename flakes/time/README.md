@@ -1,6 +1,10 @@
-# MCP Time Server Flake
+# 🕐 MCP Time Server Flake
 
-Provides time and timezone conversion capabilities for MCP clients. Retrieves current time information and performs timezone conversions using IANA timezone names with automatic system timezone detection.
+![Timezones](https://img.shields.io/badge/Timezones-IANA-blue)
+![Conversions](https://img.shields.io/badge/Conversions-Accurate-success)
+![MIT](https://img.shields.io/badge/License-MIT-green)
+
+Time and timezone conversion for AI agents. Get current time in any timezone, convert between timezones, and handle daylight saving time automatically using IANA timezone database.
 
 ## Upstream
 
@@ -105,9 +109,167 @@ Response:
 }
 ```
 
+## Quick Start
+
+```bash
+# Start the server
+cd flakes/time
+docker compose run --rm mcp-time
+```
+
+## Use Cases
+
+| Use Case | Example |
+|----------|---------|
+| **Meeting Scheduling** | "When it's 2 PM in SF, what time is it in London?" |
+| **Travel Planning** | "What's the time difference between NYC and Tokyo?" |
+| **Global Coordination** | "Convert these meeting times for all team members" |
+| **Timestamp Conversion** | "What time is 14:00 UTC in my timezone?" |
+| **DST Handling** | "Does this timezone observe daylight saving?" |
+
+## Common Timezones
+
+### Americas
+- `America/New_York` - US Eastern
+- `America/Chicago` - US Central
+- `America/Denver` - US Mountain
+- `America/Los_Angeles` - US Pacific
+- `America/Toronto` - Canada Eastern
+- `America/Vancouver` - Canada Pacific
+- `America/Sao_Paulo` - Brazil
+
+### Europe
+- `Europe/London` - UK
+- `Europe/Paris` - France, Germany (CET)
+- `Europe/Moscow` - Russia
+- `Europe/Istanbul` - Turkey
+
+### Asia-Pacific
+- `Asia/Tokyo` - Japan
+- `Asia/Shanghai` - China
+- `Asia/Hong_Kong` - Hong Kong
+- `Asia/Singapore` - Singapore
+- `Asia/Dubai` - UAE
+- `Asia/Kolkata` - India
+- `Australia/Sydney` - Australia East
+
+## Example Workflows
+
+### Schedule International Meeting
+
+```javascript
+// Find overlapping work hours
+times = [
+  convert_time({
+    source_timezone: "America/Los_Angeles",
+    time: "09:00",
+    target_timezone: "Europe/London"
+  }),
+  convert_time({
+    source_timezone: "America/Los_Angeles",
+    time: "09:00",
+    target_timezone: "Asia/Tokyo"
+  })
+]
+
+// Returns:
+// LA 9:00 AM = London 5:00 PM = Tokyo 1:00 AM (next day)
+```
+
+### Check Current Time Globally
+
+```javascript
+locations = [
+  "America/New_York",
+  "Europe/London", 
+  "Asia/Tokyo",
+  "Australia/Sydney"
+]
+
+locations.map(tz => get_current_time({ timezone: tz }))
+
+// Returns current time in all locations
+```
+
+### Plan Travel Itinerary
+
+```javascript
+// Departure time
+departure = get_current_time({ timezone: "America/Los_Angeles" })
+
+// Arrival time (after 12-hour flight)
+arrival = convert_time({
+  source_timezone: "America/Los_Angeles",
+  time: "14:00",  // 2 PM departure
+  target_timezone: "Asia/Tokyo"
+})
+
+// Returns arrival time accounting for timezone change
+```
+
+## Daylight Saving Time
+
+The server automatically handles DST:
+
+```javascript
+// Summer (DST active)
+convert_time({
+  source_timezone: "America/New_York",
+  time: "12:00",
+  target_timezone: "Europe/London"
+})
+// EDT (UTC-4) → BST (UTC+1) = 5:00 PM
+
+// Winter (DST inactive)
+convert_time({
+  source_timezone: "America/New_York", 
+  time: "12:00",
+  target_timezone: "Europe/London"
+})
+// EST (UTC-5) → GMT (UTC+0) = 5:00 PM
+```
+
+The `is_dst` field in responses indicates if DST is active.
+
+## Time Formats
+
+### Input Format
+- **24-hour format**: `HH:MM` (e.g., `14:30`, `09:00`)
+- Hours: 00-23
+- Minutes: 00-59
+
+### Output Format
+```json
+{
+  "timezone": "Europe/London",
+  "datetime": "2024-06-09T14:30:00+01:00",  // ISO 8601
+  "is_dst": true
+}
+```
+
+## IANA Timezone Names
+
+Find timezone names:
+- [IANA Timezone Database](https://www.iana.org/time-zones)
+- [Timezone List](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
+
+### Common Patterns
+- `Continent/City` (e.g., `America/New_York`)
+- `Country/City` (e.g., `Australia/Sydney`)
+- Avoid abbreviations (EST, PST) - use full names
+
 ## Example Questions for Claude
 
 1. "What time is it now?" (uses system timezone)
 2. "What time is it in Tokyo?"
 3. "When it's 4 PM in New York, what time is it in London?"
 4. "Convert 9:30 AM Tokyo time to New York time"
+5. "What's the time difference between San Francisco and Berlin?"
+6. "If I call London at 10 AM my time (LA), what time is it there?"
+7. "Is daylight saving time active in New York right now?"
+
+## Related Flakes
+
+- **memory** - Store timezone preferences for users
+- **sequentialthinking** - Complex scheduling logic
+- **mcp-market-data** - Market hours across timezones

@@ -1,6 +1,10 @@
-# Yutu YouTube MCP Server
+# 📹 Yutu YouTube MCP Server
 
-AI-powered YouTube automation toolkit with full MCP support for managing videos, comments, playlists, and channel operations.
+![YouTube](https://img.shields.io/badge/YouTube-FF0000?logo=youtube&logoColor=white)
+![Go](https://img.shields.io/badge/Go-1.23-00ADD8?logo=go)
+![Analytics](https://img.shields.io/badge/Analytics-API-blue)
+
+AI-powered YouTube automation toolkit with full MCP support. Manage videos, comments, playlists, analytics, and channel operations through the YouTube Data API v3.
 
 ## Overview
 
