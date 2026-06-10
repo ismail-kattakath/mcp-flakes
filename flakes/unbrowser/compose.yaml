@@ -1,0 +1,18 @@
+services:
+  unbrowser:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mcp-flakes/unbrowser:latest
+    container_name: mcp-unbrowser
+    stdin_open: true
+    tty: true
+    environment:
+      - UNBROWSER_PROFILE=/root/.unbrowser/profiles/default
+      - RUST_LOG=info
+    volumes:
+      - unbrowser-data:/root/.unbrowser
+    restart: unless-stopped
+
+volumes:
+  unbrowser-data:

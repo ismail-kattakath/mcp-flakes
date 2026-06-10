@@ -1,0 +1,95 @@
+name: License Compliance Check
+
+on:
+  pull_request:
+    paths:
+      - 'flakes/**'
+  workflow_dispatch:
+
+jobs:
+  compliance:
+    name: Check ${{ matrix.flake }} compliance
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        flake: ${{ fromJson(needs.list-changed.outputs.flakes) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
+      - name: Check ATTRIBUTION.md exists
+        run: |
+          if [ ! -f "flakes/${{ matrix.flake }}/ATTRIBUTION.md" ]; then
+            echo "❌ Missing ATTRIBUTION.md"
+            exit 1
+          fi
+          echo "✅ ATTRIBUTION.md present"
+
+      - name: Check README has attribution
+        run: |
+          if ! head -10 "flakes/${{ matrix.flake }}/README.md" | grep -qi "originally\|licensed\|packaged"; then
+            echo "❌ README missing attribution header"
+            exit 1
+          fi
+          echo "✅ README has attribution"
+
+      - name: Check Dockerfile has OCI labels
+        run: |
+          if ! grep -q "org.opencontainers.image.source" "flakes/${{ matrix.flake }}/Dockerfile"; then
+            echo "❌ Dockerfile missing OCI labels"
+            exit 1
+          fi
+          echo "✅ Dockerfile has OCI labels"
+
+      - name: Check flake.yaml has compliance section
+        run: |
+          if yq eval '.compliance' "flakes/${{ matrix.flake }}/flake.yaml" | grep -q "null"; then
+            echo "❌ flake.yaml missing compliance section"
+            exit 1
+          fi
+          echo "✅ Compliance section present"
+
+      - name: Verify license is compatible
+        run: |
+          LICENSE=$(yq eval '.upstream.license' "flakes/${{ matrix.flake }}/flake.yaml")
+          PUBLISH=$(yq eval '.publish_image' "flakes/${{ matrix.flake }}/flake.yaml")
+
+          echo "License: $LICENSE"
+          echo "Publish: $PUBLISH"
+
+          # Check GPL requires publish_image=false
+          if [[ "$LICENSE" =~ GPL ]] && [ "$PUBLISH" == "true" ]; then
+            echo "❌ GPL license requires publish_image: false"
+            echo "See LICENSE_POLICY.md for details"
+            exit 1
+          fi
+
+          echo "✅ License configuration valid"
+
+      - name: Summary
+        run: |
+          echo "# Compliance Check: ${{ matrix.flake }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ All compliance checks passed" >> $GITHUB_STEP_SUMMARY
+
+  list-changed:
+    name: List changed flakes
+    runs-on: ubuntu-latest
+    outputs:
+      flakes: ${{ steps.list.outputs.flakes }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: List changed flakes
+        id: list
+        run: |
+          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          FLAKES=$(echo "$CHANGED_FILES" | grep '^flakes/' | cut -d'/' -f2 | sort -u | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "flakes=$FLAKES" >> $GITHUB_OUTPUT

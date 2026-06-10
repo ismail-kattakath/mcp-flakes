@@ -1,0 +1,77 @@
+name: aws-ecs
+version: 0.1.29
+description: AWS ECS MCP Server - containerize and deploy applications to Amazon ECS with full lifecycle management
+language: python
+packageManager: pip
+
+upstream:
+  repo: https://github.com/awslabs/mcp
+  commit: a4c4c880293db24aac9f1480bd417ce9386dd779
+  path: src/ecs-mcp-server
+  license: Apache-2.0
+
+tools:
+  - name: containerize_app
+    description: Provides best practices and guidance for containerizing web applications
+  - name: build_and_push_image_to_ecr
+    description: Create ECR infrastructure and push Docker images to Amazon ECR
+  - name: validate_ecs_express_mode_prerequisites
+    description: Validate IAM roles and images exist before ECS deployment
+  - name: ecs_resource_management
+    description: Manage ECS resources - clusters, services, tasks, task definitions
+  - name: wait_for_service_ready
+    description: Track deployment progress and wait for service readiness
+  - name: delete_app
+    description: Complete cleanup of Express Mode deployments
+  - name: ecs_troubleshooting_tool
+    description: Diagnose and resolve common ECS deployment problems
+
+env:
+  required:
+    - name: AWS_REGION
+      description: AWS region for ECS operations (e.g., us-east-1, eu-west-1)
+      example: "us-east-1"
+      sensitive: false
+    - name: AWS_ACCESS_KEY_ID
+      description: AWS access key ID for authentication
+      example: "AKIAIOSFODNN7EXAMPLE"
+      sensitive: true
+    - name: AWS_SECRET_ACCESS_KEY
+      description: AWS secret access key for authentication
+      example: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+      sensitive: true
+  optional:
+    - name: ALLOW_SENSITIVE_DATA
+      description: Allow exposure of sensitive data in responses (set to false for production)
+      example: "false"
+      sensitive: false
+    - name: ALLOW_WRITE
+      description: Allow write operations (set to false for production read-only access)
+      example: "false"
+      sensitive: false
+
+build:
+  context: .
+  dockerfile: Dockerfile
+
+runtime:
+  entrypoint: ["python", "-m", "awslabs.ecs_mcp_server.main"]
+
+notes: |
+  - Requires AWS credentials with ECS, ECR, and CloudFormation permissions
+  - Supports containerizing applications and deploying to ECS Express Mode
+  - Includes ECR integration for Docker image builds and pushes
+  - Auto-scaling and Application Load Balancer configuration
+  - Circuit breaker with automatic rollback for failed deployments
+  - For production: set ALLOW_SENSITIVE_DATA=false and ALLOW_WRITE=false
+  - Official AWS Labs project with managed hosting option available
+  - Requires Docker or Finch installed locally for containerization
+  - See: https://github.com/awslabs/mcp
+
+compliance:
+  attribution_file: ATTRIBUTION.md
+  license_verified: true
+  license_compatible: true
+  copyright_holders:
+    - "Amazon Web Services"
+  upstream_license_url: https://github.com/awslabs/mcp/blob/main/LICENSE

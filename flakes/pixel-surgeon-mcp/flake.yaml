@@ -1,0 +1,67 @@
+name: pixel-surgeon-mcp
+upstream:
+  repo: https://github.com/j-east/pixel-surgeon-mcp
+  commit: a7c91890289fd2ee84dec9f16c051e3792234fe6
+  license: MIT
+runner: node
+build:
+  type: npm-package
+  install: npm install -g pixel-surgeon-mcp@1.1.1
+  entrypoint: ["npx", "pixel-surgeon-mcp"]
+transport: stdio
+env:
+  - name: GEMINI_API_KEY
+    required: false
+    secret: true
+    description: Google Gemini API key for image generation (get from https://aistudio.google.com/apikey)
+  - name: OPENAI_API_KEY
+    required: false
+    secret: true
+    description: OpenAI API key for GPT Image generation
+  - name: XAI_API_KEY
+    required: false
+    secret: true
+    description: xAI API key for Grok Imagine generation
+  - name: DEFAULT_IMAGE_MODEL
+    required: false
+    secret: false
+    description: Default model (gemini-3.1-flash-image, gemini-2.5-flash-image, gpt-image-2, gpt-image-1, grok-imagine)
+  - name: WORKSPACE_DIR
+    required: false
+    secret: false
+    description: Directory for generated images/videos (defaults to ./pixel-surgeon-workspace)
+tools:
+  - generate_image
+  - generate_images
+  - generate_video
+  - edit_image
+  - fix_image
+  - fix_region
+  - interactive_fix
+  - list_images
+  - save_image
+  - remove_background
+publish_image: true
+compliance:
+  upstream_license: MIT
+  upstream_author: John Evans
+  upstream_copyright: "Copyright (c) 2025 John Evans"
+  attribution_file: ATTRIBUTION.md
+  license_verified: true
+  license_url: https://github.com/j-east/pixel-surgeon-mcp/blob/a7c91890289fd2ee84dec9f16c051e3792234fe6/LICENSE
+labels:
+  category: creative
+  subcategories:
+    - image-generation
+    - image-editing
+    - video-generation
+  capabilities:
+    - text-to-image
+    - image-to-image
+    - text-to-video
+    - background-removal
+    - multi-provider
+  providers:
+    - google-gemini
+    - openai
+    - xai

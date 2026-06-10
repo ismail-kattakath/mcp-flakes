@@ -1,0 +1,94 @@
+name: cloudflare-workers
+version: 1.0.0
+description: Cloudflare Workers Bindings MCP Server - manage KV, R2, D1, Workers, and Hyperdrive resources
+language: typescript
+packageManager: pnpm
+
+upstream:
+  repo: https://github.com/cloudflare/mcp-server-cloudflare
+  commit: cb0186135e2f2c00d91b9ad2fcab54d630eeb911
+  path: apps/workers-bindings
+  license: Apache-2.0
+
+tools:
+  - name: kv_namespaces_list
+    description: List all KV namespaces in your Cloudflare account
+  - name: kv_namespace_create
+    description: Create a new KV namespace
+  - name: kv_namespace_delete
+    description: Delete a KV namespace
+  - name: kv_namespace_get
+    description: Get details of a KV namespace
+  - name: kv_namespace_update
+    description: Update the title of a KV namespace
+  - name: workers_list
+    description: List all Workers in your Cloudflare account
+  - name: workers_get_worker
+    description: Get the details of a Cloudflare Worker
+  - name: workers_get_worker_code
+    description: Get the source code of a Cloudflare Worker
+  - name: r2_buckets_list
+    description: List R2 buckets in your Cloudflare account
+  - name: r2_bucket_create
+    description: Create a new R2 bucket
+  - name: r2_bucket_get
+    description: Get details about a specific R2 bucket
+  - name: r2_bucket_delete
+    description: Delete an R2 bucket
+  - name: d1_databases_list
+    description: List all D1 databases in your Cloudflare account
+  - name: d1_database_create
+    description: Create a new D1 database
+  - name: d1_database_delete
+    description: Delete a D1 database
+  - name: d1_database_get
+    description: Get a D1 database details
+  - name: d1_database_query
+    description: Query a D1 database with SQL
+  - name: hyperdrive_configs_list
+    description: List Hyperdrive configurations
+  - name: hyperdrive_config_create
+    description: Create a new Hyperdrive configuration
+  - name: hyperdrive_config_delete
+    description: Delete a Hyperdrive configuration
+  - name: hyperdrive_config_get
+    description: Get details of a specific Hyperdrive configuration
+  - name: hyperdrive_config_edit
+    description: Edit (patch) a Hyperdrive configuration
+
+env:
+  required:
+    - name: CLOUDFLARE_API_TOKEN
+      description: Cloudflare API token with account access (get from https://dash.cloudflare.com/profile/api-tokens)
+      example: "your-cloudflare-api-token"
+      sensitive: true
+    - name: CLOUDFLARE_ACCOUNT_ID
+      description: Cloudflare Account ID (found in dashboard)
+      example: "your-account-id"
+      sensitive: false
+
+build:
+  context: .
+  dockerfile: Dockerfile
+
+runtime:
+  entrypoint: ["node", "dist/index.js"]
+
+notes: |
+  - Requires Cloudflare API token with Workers, KV, R2, D1, and Hyperdrive permissions
+  - Supports remote MCP with Cloudflare OAuth built-in
+  - Manage Workers bindings: KV Namespaces, R2 Buckets, D1 Databases, Hyperdrive
+  - Query D1 databases directly with SQL
+  - Get Worker source code for analysis
+  - Official Cloudflare project
+  - Remote server available at: https://bindings.mcp.cloudflare.com
+  - Can use mcp-remote for clients without native remote MCP support
+  - See: https://github.com/cloudflare/mcp-server-cloudflare
+
+compliance:
+  attribution_file: ATTRIBUTION.md
+  license_verified: true
+  license_compatible: true
+  copyright_holders:
+    - "Cloudflare, Inc."
+  upstream_license_url: https://github.com/cloudflare/mcp-server-cloudflare/blob/main/LICENSE

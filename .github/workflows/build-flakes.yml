@@ -1,0 +1,200 @@
+name: Build and Test Flakes
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'flakes/**'
+      - 'runners/**'
+      - '.github/workflows/build-flakes.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'flakes/**'
+      - 'runners/**'
+
+# Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      flake:
+        description: 'Specific flake to build (leave empty for all)'
+        required: false
+
+jobs:
+  list-flakes:
+    name: List changed flakes
+    runs-on: ubuntu-latest
+    outputs:
+      flakes: ${{ steps.list.outputs.flakes }}
+      matrix: ${{ steps.list.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: List flakes
+        id: list
+        run: |
+          if [ -n "${{ github.event.inputs.flake }}" ]; then
+            # Manual trigger with specific flake
+            echo "flakes=[\"${{ github.event.inputs.flake }}\"]" >> $GITHUB_OUTPUT
+            echo "matrix={\"flake\":[\"${{ github.event.inputs.flake }}\"]}" >> $GITHUB_OUTPUT
+          else
+            # Auto-detect changed flakes
+            if [ "${{ github.event_name }}" == "pull_request" ]; then
+              CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+            else
+              CHANGED_FILES=$(git diff --name-only HEAD~1..HEAD)
+            fi
+
+            # Extract flake names from changed files
+            FLAKES=$(echo "$CHANGED_FILES" | grep '^flakes/' | cut -d'/' -f2 | sort -u | jq -R -s -c 'split("\n") | map(select(length > 0))')
+
+            # If no flakes changed, build all
+            if [ "$FLAKES" == "[]" ] || [ -z "$FLAKES" ]; then
+              FLAKES=$(find flakes -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | jq -R -s -c 'split("\n") | map(select(length > 0))')
+            fi
+
+            echo "flakes=$FLAKES" >> $GITHUB_OUTPUT
+            echo "matrix={\"flake\":$FLAKES}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Show flakes to build
+        run: |
+          echo "Flakes to build:"
+          echo '${{ steps.list.outputs.flakes }}' | jq -r '.[]'
+
+  validate:
+    name: Validate ${{ matrix.flake }}
+    needs: list-flakes
+    if: needs.list-flakes.outputs.flakes != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.list-flakes.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install yq
+        run: |
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
+      - name: Validate flake manifest
+        run: |
+          ./tools/validate-flake.sh ${{ matrix.flake }}
+
+  build:
+    name: Build ${{ matrix.flake }}
+    needs: [list-flakes, validate]
+    if: needs.list-flakes.outputs.flakes != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.list-flakes.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image
+        run: |
+          cd flakes/${{ matrix.flake }}
+          docker buildx build \
+            --platform linux/amd64 \
+            --tag ghcr.io/${{ github.repository_owner }}/mcp-flakes/${{ matrix.flake }}:latest \
+            --tag ghcr.io/${{ github.repository_owner }}/mcp-flakes/${{ matrix.flake }}:${{ github.sha }} \
+            --load \
+            .
+
+      - name: Smoke test
+        run: |
+          ./tools/smoke-test.sh ghcr.io/${{ github.repository_owner }}/mcp-flakes/${{ matrix.flake }}:latest
+
+      - name: Save build metadata
+        run: |
+          docker images ghcr.io/${{ github.repository_owner }}/mcp-flakes/${{ matrix.flake }}:latest \
+            --format "{{.Repository}}:{{.Tag}} {{.Size}}" > build-metadata-${{ matrix.flake }}.txt
+
+      - name: Upload metadata
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-metadata-${{ matrix.flake }}
+          path: build-metadata-${{ matrix.flake }}.txt
+
+  publish:
+    name: Publish ${{ matrix.flake }}
+    needs: [list-flakes, build]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.list-flakes.outputs.flakes != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.list-flakes.outputs.matrix) }}
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check if image publishing allowed
+        id: check
+        run: |
+          PUBLISH=$(yq eval '.publish_image' flakes/${{ matrix.flake }}/flake.yaml)
+          echo "allowed=$PUBLISH" >> $GITHUB_OUTPUT
+
+      - name: Set up Docker Buildx
+        if: steps.check.outputs.allowed == 'true'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        if: steps.check.outputs.allowed == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push multi-arch
+        if: steps.check.outputs.allowed == 'true'
+        run: |
+          cd flakes/${{ matrix.flake }}
+          docker buildx build \
+            --platform linux/amd64,linux/arm64 \
+            --tag ghcr.io/${{ github.repository_owner }}/mcp-flakes/${{ matrix.flake }}:latest \
+            --tag ghcr.io/${{ github.repository_owner }}/mcp-flakes/${{ matrix.flake }}:${{ github.sha }} \
+            --push \
+            .
+
+      - name: Skip publishing (license restriction)
+        if: steps.check.outputs.allowed != 'true'
+        run: |
+          echo "⚠️  Skipping image publish for ${{ matrix.flake }}"
+          echo "Reason: publish_image=false in flake.yaml"
+          echo "This flake provides build recipe only (GPL or no-license)"
+
+  summary:
+    name: Build Summary
+    needs: [list-flakes, build]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all metadata
+        uses: actions/download-artifact@v4
+        with:
+          path: metadata
+
+      - name: Generate summary
+        run: |
+          echo "# Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Built Flakes" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Flake | Image Size |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|------------|" >> $GITHUB_STEP_SUMMARY
+
+          for file in metadata/build-metadata-*/build-metadata-*.txt; do
+            if [ -f "$file" ]; then
+              cat "$file" >> $GITHUB_STEP_SUMMARY
+            fi
+          done

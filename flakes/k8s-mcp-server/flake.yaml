@@ -1,0 +1,81 @@
+name: k8s-mcp-server
+version: 1.4.2
+description: Kubernetes MCP Server - secure execution of kubectl, helm, istioctl, and argocd CLI commands
+language: python
+packageManager: pip
+
+upstream:
+  repo: https://github.com/alexei-led/k8s-mcp-server
+  commit: 1794ac932b5ff75c60a6d9c117ee57a81b95678a
+  path: .
+  license: MIT
+
+tools:
+  - name: kubectl
+    description: Execute kubectl commands for Kubernetes cluster operations
+  - name: helm
+    description: Execute Helm commands for Kubernetes package management
+  - name: istioctl
+    description: Execute Istio service mesh commands
+  - name: argocd
+    description: Execute ArgoCD GitOps commands
+
+env:
+  required:
+    - name: KUBECONFIG
+      description: Path to Kubernetes config file (mount ~/.kube directory)
+      example: "/home/appuser/.kube/config"
+      sensitive: true
+  optional:
+    - name: K8S_MCP_TRANSPORT
+      description: Transport protocol (stdio, streamable-http, or sse)
+      example: "stdio"
+      sensitive: false
+    - name: K8S_MCP_HOST
+      description: Host for HTTP/SSE transport (default 0.0.0.0)
+      example: "0.0.0.0"
+      sensitive: false
+    - name: K8S_MCP_PORT
+      description: Port for HTTP/SSE transport (default 8000)
+      example: "8000"
+      sensitive: false
+    - name: K8S_MCP_LOG_LEVEL
+      description: Logging level (DEBUG, INFO, WARNING, ERROR)
+      example: "INFO"
+      sensitive: false
+    - name: K8S_MCP_ALLOWED_COMMANDS
+      description: Comma-separated list of allowed commands (default all)
+      example: "kubectl,helm"
+      sensitive: false
+    - name: K8S_MCP_MAX_EXECUTION_TIME
+      description: Maximum command execution time in seconds (default 300)
+      example: "300"
+      sensitive: false
+
+build:
+  context: .
+  dockerfile: Dockerfile
+
+runtime:
+  entrypoint: ["python", "-m", "k8s_mcp_server"]
+
+notes: |
+  - Requires Kubernetes configuration file mounted at ~/.kube/config
+  - Supports multiple cloud providers: AWS EKS, Google GKE, Azure AKS
+  - Includes kubectl, helm, istioctl, and argocd CLI tools
+  - Security: runs as non-root user with strict command validation
+  - Supports Unix pipes with jq, grep, sed for command chaining
+  - Multiple transport protocols: stdio (default), HTTP, SSE
+  - For AWS EKS: requires AWS credentials and eksctl/aws-cli
+  - For GKE: requires gcloud credentials
+  - For AKS: requires Azure CLI credentials
+  - Mount kubeconfig as read-only: -v ~/.kube:/home/appuser/.kube:ro
+  - See: https://github.com/alexei-led/k8s-mcp-server
+
+compliance:
+  attribution_file: ATTRIBUTION.md
+  license_verified: true
+  license_compatible: true
+  copyright_holders:
+    - "Alexei Ledenev"
+  upstream_license_url: https://github.com/alexei-led/k8s-mcp-server/blob/main/LICENSE

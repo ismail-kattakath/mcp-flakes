@@ -1,0 +1,34 @@
+name: yutu
+upstream:
+  repo: https://github.com/eat-pray-ai/yutu
+  commit: e2d232c0a2b645bb96da70d167d572c01f24c85b
+  license: Apache-2.0
+runner: go
+build:
+  install: go build -o yutu .
+  entrypoint: ["yutu", "mcp", "--stdio"]
+transport: stdio
+env:
+  - name: GOOGLE_APPLICATION_CREDENTIALS
+    required: true
+    secret: true
+    description: Path to Google Cloud OAuth credentials JSON file
+  - name: YUTU_CONFIG_DIR
+    required: false
+    secret: false
+    description: Directory for Yutu configuration
+tools:
+  - youtube_upload
+  - youtube_video_list
+  - youtube_video_update
+  - youtube_comment_list
+  - youtube_playlist_manage
+  - youtube_channel_info
+resources:
+  - youtube_documentation
+publish_image: true
+compliance:
+  license_verified: true
+  authors: ["eat-pray-ai"]
+  copyright: "Copyright 2025 eat-pray-ai & OpenWaygate"
+  last_checked: 2026-06-09

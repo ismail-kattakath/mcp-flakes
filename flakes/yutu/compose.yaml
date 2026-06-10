@@ -1,0 +1,21 @@
+services:
+  yutu:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mcp-flakes/yutu:latest
+    container_name: mcp-yutu
+    stdin_open: true
+    tty: true
+    environment:
+      - YUTU_CONFIG_DIR=/root/.config/yutu
+      # Mount your Google OAuth credentials file and set path here
+      # - GOOGLE_APPLICATION_CREDENTIALS=/secrets/credentials.json
+    volumes:
+      - yutu-data:/root/.config/yutu
+      # Uncomment to mount credentials:
+      # - ./secrets/credentials.json:/secrets/credentials.json:ro
+    restart: unless-stopped
+
+volumes:
+  yutu-data:

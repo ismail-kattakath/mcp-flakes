@@ -1,0 +1,33 @@
+name: unbrowser
+upstream:
+  repo: https://github.com/protostatis/unbrowser
+  commit: 3936108c5f3762a12be3576cd65e4b1f899aaaae
+  license: Apache-2.0
+runner: rust
+build:
+  install: cargo build --release
+  entrypoint: ["unbrowser", "--mcp"]
+transport: stdio
+env:
+  - name: RUST_LOG
+    required: false
+    secret: false
+    description: Logging level (debug, info, warn, error)
+  - name: UNBROWSER_PROFILE
+    required: false
+    secret: false
+    description: Browser profile to use for cookies/state
+tools:
+  - unbrowser_navigate
+  - unbrowser_click
+  - unbrowser_fill_form
+  - unbrowser_screenshot
+  - unbrowser_cookies
+resources:
+  - unbrowser_documentation
+publish_image: true
+compliance:
+  license_verified: true
+  authors: ["Unchained/protostatis"]
+  copyright: "Copyright (c) 2024-2025 Unchained"
+  last_checked: 2026-06-09
