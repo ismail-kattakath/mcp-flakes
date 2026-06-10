@@ -1,0 +1,132 @@
+# Reusable workflow: open (or update) the PR for a synthesized flake.
+#
+# Pipes the assembled JSON into `contrib-agent pr`, which handles branch
+# creation, commit, labels, and PR open/update. Slice-1's title-in-dedup logic
+# is handled inside contrib-agent; this workflow only forwards inputs.
+name: _pr
+
+on:
+  workflow_call:
+    inputs:
+      manifest:
+        description: 'YAML manifest produced by synthesize.'
+        required: true
+        type: string
+      flake_dir:
+        description: 'Path to flakes/<name>/ produced by validate.'
+        required: true
+        type: string
+      smoke_output:
+        description: 'Smoke-test transcript to include in PR body.'
+        required: false
+        type: string
+        default: ''
+      needs_human:
+        description: 'Mark PR as needing human review (no auto-merge).'
+        required: false
+        type: boolean
+        default: false
+      needs_human_reason:
+        description: 'Reason string surfaced in PR body when needs_human=true.'
+        required: false
+        type: string
+        default: ''
+      dedup_kind:
+        description: 'Dedup kind from _dedupe (new | identical | upgrade | conflict).'
+        required: false
+        type: string
+        default: ''
+      auto_merge_eligible:
+        description: 'Boolean: whether dedup considered this PR auto-merge eligible.'
+        required: false
+        type: boolean
+        default: false
+      branch_name:
+        description: 'Optional branch to push to. Default: agent/flake-<name>-<run_id>.'
+        required: false
+        type: string
+        default: ''
+    outputs:
+      pr_url:
+        description: 'URL of the opened or updated PR.'
+        value: ${{ jobs.pr.outputs.pr_url }}
+      branch:
+        description: 'Branch the PR was pushed to.'
+        value: ${{ jobs.pr.outputs.branch }}
+
+jobs:
+  pr:
+    name: open-pr
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      pr_url: ${{ steps.run.outputs.pr_url }}
+      branch: ${{ steps.run.outputs.branch }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Build contrib-agent
+        run: cd tools/contrib-agent && npm ci --silent && npm run build
+
+      - name: Compute default branch name
+        id: branch
+        env:
+          PROVIDED_BRANCH: ${{ inputs.branch_name }}
+          FLAKE_DIR: ${{ inputs.flake_dir }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          if [ -n "$PROVIDED_BRANCH" ]; then
+            echo "branch=$PROVIDED_BRANCH" >> "$GITHUB_OUTPUT"
+          else
+            NAME=$(basename "$FLAKE_DIR")
+            echo "branch=agent/flake-${NAME}-${RUN_ID}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run contrib-agent pr
+        id: run
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MANIFEST_YAML: ${{ inputs.manifest }}
+          FLAKE_DIR: ${{ inputs.flake_dir }}
+          SMOKE_OUTPUT: ${{ inputs.smoke_output }}
+          NEEDS_HUMAN: ${{ inputs.needs_human }}
+          NEEDS_HUMAN_REASON: ${{ inputs.needs_human_reason }}
+          DEDUP_KIND: ${{ inputs.dedup_kind }}
+          AUTO_MERGE_ELIGIBLE: ${{ inputs.auto_merge_eligible }}
+          BRANCH_NAME: ${{ steps.branch.outputs.branch }}
+        run: |
+          set -euo pipefail
+          INPUT=$(jq -nc \
+            --arg manifest "$MANIFEST_YAML" \
+            --arg flakeDir "$FLAKE_DIR" \
+            --arg smokeOutput "$SMOKE_OUTPUT" \
+            --argjson needsHuman ${NEEDS_HUMAN:-false} \
+            --arg needsHumanReason "$NEEDS_HUMAN_REASON" \
+            --arg dedupKind "$DEDUP_KIND" \
+            --argjson autoMergeEligible ${AUTO_MERGE_ELIGIBLE:-false} \
+            --arg branchName "$BRANCH_NAME" \
+            '{
+               manifest: $manifest,
+               flakeDir: $flakeDir,
+               smokeOutput: $smokeOutput,
+               needsHuman: $needsHuman,
+               needsHumanReason: $needsHumanReason,
+               dedupKind: $dedupKind,
+               autoMergeEligible: $autoMergeEligible,
+               branchName: $branchName
+             }')
+
+          RESULT=$(printf '%s' "$INPUT" | node tools/contrib-agent/dist/index.js pr)
+          echo "pr result: $RESULT" >&2
+
+          URL=$(printf '%s' "$RESULT" | jq -r '.url // ""')
+          BR=$(printf '%s' "$RESULT" | jq -r '.branch // ""')
+          echo "pr_url=$URL" >> "$GITHUB_OUTPUT"
+          echo "branch=$BR" >> "$GITHUB_OUTPUT"

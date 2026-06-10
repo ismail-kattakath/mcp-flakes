@@ -1,0 +1,73 @@
+# Reusable workflow: build (and optionally push) a flake's Docker image.
+#
+# Multi-arch builds are deferred (see followups). v1 ships linux/amd64 only.
+name: _build
+
+on:
+  workflow_call:
+    inputs:
+      flake_name:
+        description: 'Name of the flake under flakes/ to build.'
+        required: true
+        type: string
+      push:
+        description: 'If true, push to the registry. Requires GITHUB_TOKEN write packages.'
+        required: false
+        type: boolean
+        default: false
+      registry:
+        description: 'OCI registry namespace (no trailing slash).'
+        required: false
+        type: string
+        default: 'ghcr.io/mcp-flakes'
+    outputs:
+      image:
+        description: 'Fully-qualified image reference (registry/flake:tag).'
+        value: ${{ jobs.build.outputs.image }}
+      digest:
+        description: 'Image digest (when push=true).'
+        value: ${{ jobs.build.outputs.digest }}
+
+jobs:
+  build:
+    name: build ${{ inputs.flake_name }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.meta.outputs.image }}
+      digest: ${{ steps.bake.outputs.digest }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Compute image ref
+        id: meta
+        env:
+          REG: ${{ inputs.registry }}
+          NAME: ${{ inputs.flake_name }}
+        run: |
+          set -euo pipefail
+          echo "image=${REG}/${NAME}:latest" >> "$GITHUB_OUTPUT"
+
+      - name: Login to registry
+        if: ${{ inputs.push }}
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build (and optionally push)
+        id: bake
+        uses: docker/build-push-action@v6
+        with:
+          context: flakes/${{ inputs.flake_name }}
+          file: flakes/${{ inputs.flake_name }}/Dockerfile
+          push: ${{ inputs.push }}
+          load: ${{ inputs.push == false }}
+          tags: ${{ steps.meta.outputs.image }}
+          platforms: linux/amd64
