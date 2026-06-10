@@ -24,3 +24,11 @@ env:
     description: Base URL for the Shahnameh API backend
     required: true
     default: http://host.docker.internal:8000/api/v1
+compliance:
+  upstream_license: NONE
+  upstream_author: Unknown
+  upstream_copyright: "All rights reserved (no license specified)"
+  attribution_file: ATTRIBUTION.md
+  license_verified: true
+  license_url: null
+  notes: "WARNING: No license file found in upstream repository. Default copyright applies - all rights reserved. Contact upstream author for usage clarification."

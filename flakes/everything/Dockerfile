@@ -4,6 +4,12 @@
 # Use pinned node runner
 FROM node@sha256:10fc5f5f33cba34a4befa58fcf95f724e67707fab7c32fb8cd3fcf90ebcc20df
 
+LABEL org.opencontainers.image.source="https://github.com/modelcontextprotocol/servers"
+LABEL org.opencontainers.image.authors="Model Context Protocol a Series of LF Projects, LLC."
+LABEL org.opencontainers.image.licenses="Apache-2.0 OR MIT"
+LABEL ai.mcp.flake.upstream.repo="https://github.com/modelcontextprotocol/servers"
+LABEL ai.mcp.flake.upstream.commit="275175cda17ca9c49920ceed2bcf27e12e59f8b2"
+
 # Install git and ca-certificates
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \

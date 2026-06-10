@@ -45,3 +45,10 @@ tools:
   - natural_language_search
   - artist_network
 publish_image: true
+compliance:
+  upstream_license: MIT
+  upstream_author: Kush Gupta
+  upstream_copyright: "Copyright (c) 2026 Kush Gupta"
+  attribution_file: ATTRIBUTION.md
+  license_verified: true
+  license_url: https://github.com/gupta-kush/spotify-mcp/blob/13a711cfe56e02b7e06b34da08c7238485cd539b/LICENSE

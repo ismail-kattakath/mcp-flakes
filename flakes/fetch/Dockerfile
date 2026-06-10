@@ -4,6 +4,12 @@
 # Use a Python image with uv pre-installed
 FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS builder
 
+LABEL org.opencontainers.image.source="https://github.com/modelcontextprotocol/servers"
+LABEL org.opencontainers.image.authors="Anthropic, PBC."
+LABEL org.opencontainers.image.licenses="MIT"
+LABEL ai.mcp.flake.upstream.repo="https://github.com/modelcontextprotocol/servers"
+LABEL ai.mcp.flake.upstream.commit="275175cda17ca9c49920ceed2bcf27e12e59f8b2"
+
 # Install git for cloning
 RUN apt-get update && \
     apt-get install -y --no-install-recommends git ca-certificates && \

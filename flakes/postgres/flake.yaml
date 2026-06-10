@@ -37,3 +37,11 @@ notes: |
   - All queries are executed in READ ONLY transactions
   - Automatically discovers table schemas from database metadata
   - When running in Docker on macOS, use host.docker.internal for localhost connections
+
+compliance:
+  upstream_license: MIT
+  upstream_author: "Anthropic, PBC"
+  upstream_copyright: "Copyright (c) 2024 Anthropic, PBC"
+  attribution_file: ATTRIBUTION.md
+  license_verified: true
+  license_url: https://github.com/modelcontextprotocol/servers-archived/blob/main/LICENSE

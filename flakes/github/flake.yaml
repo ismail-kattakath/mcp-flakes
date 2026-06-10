@@ -85,3 +85,11 @@ notes: |
   - Comprehensive error handling with clear messages
   - Maintains proper Git history without force pushing
   - See: https://github.com/settings/tokens
+
+compliance:
+  attribution_file: ATTRIBUTION.md
+  license_verified: true
+  license_compatible: true
+  copyright_holders:
+    - "Anthropic, PBC"
+  upstream_license_url: https://github.com/modelcontextprotocol/servers-archived/blob/9be4674/LICENSE

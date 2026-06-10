@@ -29,6 +29,14 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 FROM python:3.12-slim-bookworm
 
+LABEL org.opencontainers.image.title="mcp-server-sqlite" \
+      org.opencontainers.image.description="SQLite MCP Server - database operations with business intelligence capabilities" \
+      org.opencontainers.image.source="https://github.com/modelcontextprotocol/servers-archived" \
+      org.opencontainers.image.revision="9be4674" \
+      org.opencontainers.image.licenses="MIT" \
+      org.opencontainers.image.authors="Anthropic, PBC" \
+      org.opencontainers.image.vendor="mcp-flakes"
+
 WORKDIR /app
 
 COPY --from=builder /root/.local /root/.local

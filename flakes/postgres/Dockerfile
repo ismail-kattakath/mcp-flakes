@@ -23,6 +23,14 @@ RUN --mount=type=cache,target=/root/.npm npm install && \
 
 FROM node:22-alpine AS release
 
+LABEL org.opencontainers.image.title="mcp-server-postgres" \
+      org.opencontainers.image.description="PostgreSQL MCP Server - read-only database access with schema inspection" \
+      org.opencontainers.image.source="https://github.com/modelcontextprotocol/servers-archived" \
+      org.opencontainers.image.revision="9be4674" \
+      org.opencontainers.image.licenses="MIT" \
+      org.opencontainers.image.authors="Anthropic, PBC" \
+      org.opencontainers.image.vendor="mcp-flakes"
+
 COPY --from=builder /app/dist /app/dist
 COPY --from=builder /app/package.json /app/package.json
 COPY --from=builder /app/package-lock.json /app/package-lock.json

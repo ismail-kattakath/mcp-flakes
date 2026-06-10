@@ -4,6 +4,14 @@
 # Use Python 3.12 slim
 FROM python:3.12-slim
 
+LABEL org.opencontainers.image.title="spotify-mcp" \
+      org.opencontainers.image.description="Control Spotify from Claude, Cursor, or any MCP client" \
+      org.opencontainers.image.source="https://github.com/gupta-kush/spotify-mcp" \
+      org.opencontainers.image.revision="13a711cfe56e02b7e06b34da08c7238485cd539b" \
+      org.opencontainers.image.licenses="MIT" \
+      org.opencontainers.image.authors="Kush Gupta" \
+      org.opencontainers.image.vendor="mcp-flakes"
+
 # Install system dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \

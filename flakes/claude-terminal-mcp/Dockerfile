@@ -4,6 +4,12 @@
 
 FROM node@sha256:6710aea4dbb47f7d74f6b604b5e9e86ef39627121be69407b2c3552605f2033d AS builder
 
+LABEL org.opencontainers.image.source="https://github.com/LukeLamb/claude-terminal-mcp"
+LABEL org.opencontainers.image.authors="Luke Lamb"
+LABEL org.opencontainers.image.licenses="MIT"
+LABEL ai.mcp.flake.upstream.repo="https://github.com/LukeLamb/claude-terminal-mcp"
+LABEL ai.mcp.flake.upstream.commit="25ee5511264ef1c84a1e9bc596dd5104fe1be5e3"
+
 # Install git for cloning
 RUN apt-get update && \
     apt-get install -y --no-install-recommends git ca-certificates && \

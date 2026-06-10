@@ -1,0 +1,310 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/ismail-kattakath/mcp-flakes/schema/flake.schema.json",
+  "title": "MCP Flake Manifest",
+  "description": "Schema for mcp-flakes flake.yaml manifest files",
+  "type": "object",
+  "required": ["name", "upstream", "runner", "transport", "publish_image"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$",
+      "description": "Flake name in lowercase kebab-case",
+      "examples": ["filesystem", "mcp-compress", "astronomy-oracle"]
+    },
+    "upstream": {
+      "type": "object",
+      "required": ["repo", "commit", "license"],
+      "properties": {
+        "repo": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://github\\.com/[^/]+/[^/]+$",
+          "description": "GitHub repository URL",
+          "examples": ["https://github.com/modelcontextprotocol/servers"]
+        },
+        "commit": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{40}$",
+          "description": "Full commit SHA (40 characters)",
+          "examples": ["275175cda17ca9c49920ceed2bcf27e12e59f8b2"]
+        },
+        "license": {
+          "type": "string",
+          "enum": [
+            "MIT",
+            "Apache-2.0",
+            "BSD-2-Clause",
+            "BSD-3-Clause",
+            "ISC",
+            "GPL-2.0",
+            "GPL-3.0",
+            "AGPL-3.0",
+            "LGPL-2.1",
+            "LGPL-3.0",
+            "CC0-1.0",
+            "Proprietary",
+            "No license"
+          ],
+          "description": "SPDX license identifier"
+        },
+        "subpath": {
+          "type": "string",
+          "description": "Subpath within monorepo (e.g., src/filesystem)",
+          "examples": ["src/filesystem", "packages/server"]
+        },
+        "package": {
+          "type": "string",
+          "description": "Published package name (for npm/pypi patterns)",
+          "examples": ["a2asearch-mcp", "aesthetics-wiki-mcp"]
+        },
+        "package_version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+.*$",
+          "description": "Semver version for published packages",
+          "examples": ["1.1.6", "0.6.3"]
+        }
+      }
+    },
+    "runner": {
+      "type": "string",
+      "enum": ["node", "python", "node-python", "playwright", "go", "rust"],
+      "description": "Base image runner type"
+    },
+    "build": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "monorepo",
+            "single-ts",
+            "single-js",
+            "npm-package",
+            "python-source",
+            "python-pypi",
+            "python-uv",
+            "no-build"
+          ],
+          "description": "Build pattern type"
+        },
+        "install": {
+          "type": ["string", "null"],
+          "description": "Install command (e.g., 'npm ci', 'pip install -r requirements.txt')",
+          "examples": ["npm ci", "pip install -r requirements.txt", "uv sync --frozen", null]
+        },
+        "build": {
+          "type": ["string", "null"],
+          "description": "Build command (e.g., 'npm run build', null for no build)",
+          "examples": ["npm run build", "tsc", null]
+        },
+        "entrypoint": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Container entrypoint as array",
+          "examples": [
+            ["node", "dist/index.js"],
+            ["python", "-m", "mcp_server_git"],
+            ["npx", "-y", "package-name"]
+          ]
+        },
+        "deterministic": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether build is deterministic (has lockfile)"
+        },
+        "lockfile": {
+          "type": ["string", "null"],
+          "enum": ["package-lock.json", "pnpm-lock.yaml", "yarn.lock", "requirements.txt", "uv.lock", null],
+          "description": "Lockfile type if present"
+        }
+      }
+    },
+    "transport": {
+      "type": "string",
+      "enum": ["stdio", "http", "sse", "websocket"],
+      "description": "MCP transport protocol"
+    },
+    "env": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[A-Z_][A-Z0-9_]*$",
+            "description": "Environment variable name in UPPER_SNAKE_CASE"
+          },
+          "required": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether this env var is required"
+          },
+          "secret": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether this is a secret/credential"
+          },
+          "description": {
+            "type": "string",
+            "description": "Human-readable description of the env var"
+          },
+          "default": {
+            "type": "string",
+            "description": "Default value if not provided"
+          }
+        }
+      },
+      "description": "Environment variables"
+    },
+    "tools": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "description": "List of MCP tool names exposed by this server",
+      "examples": [
+        ["read_file", "write_file", "list_directory"]
+      ]
+    },
+    "prompts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of MCP prompts exposed by this server"
+    },
+    "resources": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of MCP resources exposed by this server"
+    },
+    "publish_image": {
+      "type": "boolean",
+      "description": "Whether to publish prebuilt image to GHCR (true for permissive licenses, false for GPL)"
+    },
+    "compliance": {
+      "type": "object",
+      "properties": {
+        "license_verified": {
+          "type": "boolean",
+          "description": "Whether license has been manually verified"
+        },
+        "authors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Original authors from package.json or AUTHORS file"
+        },
+        "copyright": {
+          "type": "string",
+          "pattern": "^©.*",
+          "description": "Copyright notice from LICENSE file",
+          "examples": ["© 2024 Author Name", "© 2024 Model Context Protocol Contributors"]
+        },
+        "last_checked": {
+          "type": "string",
+          "format": "date",
+          "description": "Date license was last verified (YYYY-MM-DD)"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Any special compliance notes"
+        }
+      }
+    },
+    "notes": {
+      "type": "string",
+      "description": "General notes about this flake"
+    },
+    "experimental": {
+      "type": "boolean",
+      "default": false,
+      "description": "Mark as experimental/unstable"
+    },
+    "deprecated": {
+      "type": "boolean",
+      "default": false,
+      "description": "Mark as deprecated"
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "name": "filesystem",
+      "upstream": {
+        "repo": "https://github.com/modelcontextprotocol/servers",
+        "commit": "275175cda17ca9c49920ceed2bcf27e12e59f8b2",
+        "license": "MIT",
+        "subpath": "src/filesystem"
+      },
+      "runner": "node",
+      "build": {
+        "type": "monorepo",
+        "install": "npm ci",
+        "build": "npm run build",
+        "entrypoint": ["node", "dist/index.js"],
+        "deterministic": true,
+        "lockfile": "package-lock.json"
+      },
+      "transport": "stdio",
+      "env": [
+        {
+          "name": "ALLOWED_DIRECTORIES",
+          "required": false,
+          "secret": false,
+          "description": "Comma-separated list of directories"
+        }
+      ],
+      "tools": [
+        "read_file",
+        "write_file",
+        "list_directory"
+      ],
+      "publish_image": true,
+      "compliance": {
+        "license_verified": true,
+        "authors": ["Model Context Protocol Contributors"],
+        "copyright": "© 2024 Model Context Protocol a Series of LF Projects, LLC",
+        "last_checked": "2024-06-09"
+      }
+    },
+    {
+      "name": "a2asearch",
+      "upstream": {
+        "repo": "https://github.com/tadas-github/a2asearch-mcp",
+        "commit": "c4feef919f42785380136e417d134dae42f5cd85",
+        "license": "MIT",
+        "package": "a2asearch-mcp",
+        "package_version": "1.1.6"
+      },
+      "runner": "node",
+      "build": {
+        "type": "npm-package",
+        "install": "npm install -g a2asearch-mcp@1.1.6",
+        "entrypoint": ["npx", "-y", "a2asearch-mcp"]
+      },
+      "transport": "stdio",
+      "env": [],
+      "tools": [
+        "search_mcp_servers",
+        "get_server_details",
+        "list_categories"
+      ],
+      "publish_image": true,
+      "compliance": {
+        "license_verified": true,
+        "authors": ["Tadas Stankevicius"],
+        "copyright": "© 2026 Tadas Stankevicius",
+        "last_checked": "2024-06-09"
+      }
+    }
+  ]
+}

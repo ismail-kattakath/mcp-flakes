@@ -27,3 +27,10 @@ tools:
   - get_file_info
   - list_allowed_directories
 publish_image: true
+compliance:
+  attribution_file: ATTRIBUTION.md
+  license_verified: true
+  license_compatible: true
+  copyright_holders:
+    - "Model Context Protocol a Series of LF Projects, LLC."
+  upstream_license_url: https://github.com/modelcontextprotocol/servers/blob/275175cda17ca9c49920ceed2bcf27e12e59f8b2/LICENSE

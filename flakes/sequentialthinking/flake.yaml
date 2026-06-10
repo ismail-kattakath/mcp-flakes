@@ -18,3 +18,11 @@ env:
 tools:
   - sequential_thinking
 publish_image: true
+compliance:
+  upstream_license: "Apache-2.0 OR MIT"
+  upstream_author: "Model Context Protocol a Series of LF Projects, LLC."
+  upstream_copyright: "Copyright (c) 2024-2025 Model Context Protocol a Series of LF Projects, LLC."
+  attribution_file: ATTRIBUTION.md
+  license_verified: true
+  license_url: https://github.com/modelcontextprotocol/servers/blob/275175cda17ca9c49920ceed2bcf27e12e59f8b2/LICENSE
+  notes: "Dual-licensed: Apache-2.0 OR MIT (project transitioning from MIT to Apache-2.0)"

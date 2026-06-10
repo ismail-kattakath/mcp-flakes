@@ -29,6 +29,15 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # Final runtime image
 FROM python:3.12-slim-bookworm
 
+# OCI labels for attribution and compliance
+LABEL org.opencontainers.image.title="MCP Git Server"
+LABEL org.opencontainers.image.description="MCP server for Git repository operations"
+LABEL org.opencontainers.image.source="https://github.com/modelcontextprotocol/servers"
+LABEL org.opencontainers.image.revision="275175cda17ca9c49920ceed2bcf27e12e59f8b2"
+LABEL org.opencontainers.image.licenses="Apache-2.0 OR MIT"
+LABEL org.opencontainers.image.authors="Anthropic, PBC."
+LABEL org.opencontainers.image.documentation="https://github.com/modelcontextprotocol/servers/tree/275175cda17ca9c49920ceed2bcf27e12e59f8b2/src/git"
+
 # Install git and git-lfs
 RUN apt-get update && \
     apt-get install -y --no-install-recommends git git-lfs && \

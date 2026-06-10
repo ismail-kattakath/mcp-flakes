@@ -23,6 +23,15 @@ RUN --mount=type=cache,target=/root/.npm npm install && \
 
 FROM node:22.12-alpine AS release
 
+# OCI labels for attribution and compliance
+LABEL org.opencontainers.image.title="MCP GitHub Server"
+LABEL org.opencontainers.image.description="MCP server for GitHub API operations"
+LABEL org.opencontainers.image.source="https://github.com/modelcontextprotocol/servers-archived"
+LABEL org.opencontainers.image.revision="9be4674"
+LABEL org.opencontainers.image.licenses="MIT"
+LABEL org.opencontainers.image.authors="Anthropic, PBC"
+LABEL org.opencontainers.image.documentation="https://github.com/modelcontextprotocol/servers-archived/tree/9be4674/src/github"
+
 COPY --from=builder /app/dist /app/dist
 COPY --from=builder /app/package.json /app/package.json
 COPY --from=builder /app/package-lock.json /app/package-lock.json

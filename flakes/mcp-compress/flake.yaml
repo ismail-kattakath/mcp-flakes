@@ -16,3 +16,10 @@ tools:
   - retrieve
   - stats
 publish_image: true
+compliance:
+  attribution_file: ATTRIBUTION.md
+  license_verified: true
+  license_compatible: true
+  copyright_holders:
+    - "ShipItAndPray"
+  upstream_license_url: https://github.com/ShipItAndPray/mcp-compress/blob/610408e55d912466aaa5b442a51f2b31cae3c6fe/LICENSE

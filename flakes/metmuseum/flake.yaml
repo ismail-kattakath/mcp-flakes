@@ -24,3 +24,10 @@ tools:
   - get-museum-object
   - open-met-explorer
 publish_image: true
+compliance:
+  attribution_file: ATTRIBUTION.md
+  license_verified: true
+  license_compatible: true
+  copyright_holders:
+    - "Mike Chao"
+  upstream_license_url: https://github.com/mikechao/metmuseum-mcp/blob/576b5441daa04cae33d4583c23c35074390c9e2f/LICENSE
