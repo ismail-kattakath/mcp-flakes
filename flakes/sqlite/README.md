@@ -1,6 +1,10 @@
-# SQLite MCP Server
+# 🗄️ SQLite MCP Server
 
-A Model Context Protocol server that provides comprehensive SQLite database interaction with business intelligence capabilities. This server enables running SQL queries, analyzing data, and automatically generating business insights.
+![SQLite](https://img.shields.io/badge/SQLite-3-003B57?logo=sqlite)
+![Read Write](https://img.shields.io/badge/Access-Read%2FWrite-orange)
+![MCP](https://img.shields.io/badge/MCP-0.6.2-blue)
+
+Comprehensive SQLite database interaction with business intelligence capabilities. Run queries, analyze data, manage schemas, and automatically generate insights.
 
 ## Features
 
@@ -278,6 +282,272 @@ This flake is built from the official MCP servers repository:
 - **Server Version**: 0.6.2
 - **Python**: 3.12
 - **MCP SDK**: 1.6.0+
+
+## Quick Start
+
+```bash
+# 1. Create a database file
+touch mydata.db
+
+# 2. Run the server
+docker run -i --rm \
+  -v $(pwd):/data \
+  mcp/sqlite:0.6.2 \
+  --db-path /data/mydata.db
+```
+
+## Business Intelligence Features
+
+### Automatic Insights
+
+The server includes a **memo://insights** resource that automatically tracks business insights discovered during analysis:
+
+```javascript
+// Add insight during analysis
+append_insight({ 
+  insight: "Customer retention dropped 15% in Q2 compared to Q1"
+})
+
+// The memo://insights resource auto-updates
+// Claude can reference it in subsequent analysis
+```
+
+### Interactive Demo
+
+```javascript
+// Launch guided demo
+mcp-demo({ topic: "e-commerce" })
+
+// Creates sample schema, data, and guides through:
+// 1. Schema exploration
+// 2. Basic queries
+// 3. Aggregations
+// 4. Insights generation
+```
+
+## Use Cases
+
+| Use Case | Example |
+|----------|---------|
+| **Data Analysis** | "Find top selling products by revenue" |
+| **Schema Management** | "Create a users table with email validation" |
+| **Reporting** | "Generate monthly sales report" |
+| **ETL Operations** | "Import CSV data into database" |
+| **Data Validation** | "Check for orphaned records" |
+| **Insights Tracking** | "Track discovered patterns as memos" |
+
+## Example Workflows
+
+### Create and Populate Database
+
+```sql
+-- 1. Create table
+CREATE TABLE products (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  price REAL CHECK(price > 0),
+  category TEXT,
+  stock INTEGER DEFAULT 0
+);
+
+-- 2. Insert data
+INSERT INTO products (name, price, category, stock)
+VALUES 
+  ('Laptop', 999.99, 'Electronics', 50),
+  ('Mouse', 29.99, 'Electronics', 200),
+  ('Desk', 299.99, 'Furniture', 30);
+
+-- 3. Verify
+SELECT * FROM products;
+```
+
+### Analyze Sales Data
+
+```sql
+-- Top products by revenue
+SELECT 
+  p.name,
+  p.category,
+  SUM(oi.quantity * oi.price) as revenue
+FROM products p
+JOIN order_items oi ON p.id = oi.product_id
+GROUP BY p.id, p.name, p.category
+ORDER BY revenue DESC
+LIMIT 10;
+
+-- Category performance
+SELECT 
+  category,
+  COUNT(*) as product_count,
+  AVG(price) as avg_price,
+  SUM(stock) as total_stock
+FROM products
+GROUP BY category;
+```
+
+### Track Insights
+
+```sql
+-- After discovering pattern
+-- Use append_insight tool:
+append_insight({
+  insight: "Electronics category has 3x higher turnover than Furniture"
+})
+
+-- The memo://insights resource now contains this insight
+-- Future queries can reference accumulated insights
+```
+
+## Schema Tools
+
+### List Tables
+
+```javascript
+list_tables()
+// Returns: ['products', 'orders', 'customers', ...]
+```
+
+### Describe Table
+
+```javascript
+describe_table({ table_name: "products" })
+// Returns:
+// [
+//   { name: 'id', type: 'INTEGER' },
+//   { name: 'name', type: 'TEXT' },
+//   { name: 'price', type: 'REAL' },
+//   ...
+// ]
+```
+
+## Data Types
+
+| SQLite Type | Use For | Example |
+|-------------|---------|---------|
+| `INTEGER` | Whole numbers, IDs | `id INTEGER PRIMARY KEY` |
+| `REAL` | Decimals, prices | `price REAL` |
+| `TEXT` | Strings, names | `name TEXT NOT NULL` |
+| `BLOB` | Binary data | `image BLOB` |
+| `NULL` | Missing values | `middle_name TEXT` |
+
+## Constraints
+
+```sql
+-- Primary key
+id INTEGER PRIMARY KEY AUTOINCREMENT
+
+-- Not null
+email TEXT NOT NULL
+
+-- Unique
+username TEXT UNIQUE
+
+-- Check constraint
+price REAL CHECK(price > 0)
+
+-- Default value
+created_at TEXT DEFAULT CURRENT_TIMESTAMP
+
+-- Foreign key
+customer_id INTEGER REFERENCES customers(id)
+```
+
+## Common Patterns
+
+### Date Handling
+
+```sql
+-- Store as TEXT in ISO 8601
+created_at TEXT DEFAULT (datetime('now'))
+
+-- Query by date range
+SELECT * FROM orders
+WHERE date(created_at) BETWEEN '2024-01-01' AND '2024-12-31'
+```
+
+### JSON Support
+
+```sql
+-- Store JSON data
+CREATE TABLE events (
+  id INTEGER PRIMARY KEY,
+  data JSON
+);
+
+-- Query JSON fields
+SELECT json_extract(data, '$.user_id') as user_id
+FROM events
+WHERE json_extract(data, '$.event_type') = 'purchase';
+```
+
+### Full-Text Search
+
+```sql
+-- Create FTS table
+CREATE VIRTUAL TABLE articles_fts 
+USING fts5(title, content);
+
+-- Search
+SELECT * FROM articles_fts 
+WHERE articles_fts MATCH 'python programming';
+```
+
+## Volume Mounting
+
+### Mount Directory
+
+```bash
+docker run -i --rm \
+  -v /path/to/db/dir:/data \
+  mcp/sqlite:0.6.2 \
+  --db-path /data/mydb.sqlite
+```
+
+### Mount Specific File
+
+```bash
+docker run -i --rm \
+  -v /path/to/mydb.sqlite:/data/mydb.sqlite \
+  mcp/sqlite:0.6.2 \
+  --db-path /data/mydb.sqlite
+```
+
+## Performance Tips
+
+### Use Indexes
+
+```sql
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_orders_customer ON orders(customer_id);
+```
+
+### Analyze Query Plans
+
+```sql
+EXPLAIN QUERY PLAN
+SELECT * FROM orders WHERE customer_id = 123;
+```
+
+### Vacuum Regularly
+
+```sql
+VACUUM;  -- Reclaim space and optimize
+```
+
+## Related Flakes
+
+- **postgres** - PostgreSQL database (read-only)
+- **filesystem** - File operations for CSV import/export
+- **memory** - Graph-based knowledge storage
+
+## Comparison: SQLite vs PostgreSQL
+
+| Feature | SQLite (this) | PostgreSQL |
+|---------|--------------|------------|
+| Access | Read + Write | Read Only |
+| Setup | Single file | Server required |
+| Concurrency | Limited | High |
+| Best For | Local data, prototypes | Production, multi-user |
 
 ## License
 

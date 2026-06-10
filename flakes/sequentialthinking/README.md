@@ -76,6 +76,177 @@ The Sequential Thinking tool is designed for:
 - Tasks that need to maintain context over multiple steps
 - Situations where irrelevant information needs to be filtered out
 
+## Quick Start
+
+```bash
+# Start the server
+cd flakes/sequentialthinking
+docker compose run --rm mcp-sequentialthinking
+```
+
+## How It Works
+
+### Thinking Process Flow
+
+```
+1. Initial Thought → 2. Analysis → 3. Revision (if needed)
+                    ↓                      ↓
+              Alternative Branch    → Further Analysis
+```
+
+### Key Concepts
+
+| Feature | Description |
+|---------|-------------|
+| **Sequential Steps** | Break problem into manageable thought steps |
+| **Dynamic Planning** | Adjust total thought count as understanding evolves |
+| **Revision** | Reconsider previous thoughts when new insights emerge |
+| **Branching** | Explore alternative reasoning paths |
+| **Context Preservation** | Maintain full thought chain across steps |
+
+## Example Workflows
+
+### Problem Decomposition
+
+```javascript
+// Thought 1: Initial understanding
+{
+  thought: "I need to design a caching system. First, let me identify the key requirements.",
+  thoughtNumber: 1,
+  totalThoughts: 5,
+  nextThoughtNeeded: true
+}
+
+// Thought 2: Analysis
+{
+  thought: "The system needs: 1) fast lookup, 2) TTL support, 3) eviction policy. This is more complex than I thought.",
+  thoughtNumber: 2,
+  totalThoughts: 8,  // Adjusted up
+  needsMoreThoughts: true,
+  nextThoughtNeeded: true
+}
+
+// Thought 3: Revision of approach
+{
+  thought: "Actually, before choosing data structures, I should consider the access patterns.",
+  thoughtNumber: 3,
+  totalThoughts: 8,
+  isRevision: true,
+  revisesThought: 2,
+  nextThoughtNeeded: true
+}
+```
+
+### Alternative Path Exploration
+
+```javascript
+// Branch A: Redis-based solution
+{
+  thought: "Let's explore using Redis as the cache backend.",
+  thoughtNumber: 4,
+  totalThoughts: 8,
+  branchId: "redis",
+  branchFromThought: 3,
+  nextThoughtNeeded: true
+}
+
+// Branch B: In-memory solution
+{
+  thought: "Alternatively, we could use an in-memory cache with LRU eviction.",
+  thoughtNumber: 4,
+  totalThoughts: 8,
+  branchId: "inmemory",
+  branchFromThought: 3,
+  nextThoughtNeeded: true
+}
+```
+
+## Use Cases
+
+| Use Case | Example |
+|----------|---------|
+| **Architecture Design** | "Design a scalable microservices architecture" |
+| **Debugging** | "Analyze why this API call is failing" |
+| **Planning** | "Create a project timeline with dependencies" |
+| **Code Review** | "Evaluate this implementation for issues" |
+| **Learning** | "Explain how transformers work in ML" |
+| **Decision Making** | "Choose between SQL and NoSQL for this use case" |
+
+## When to Use Sequential Thinking
+
+### ✅ Use When:
+- Problem scope is unclear initially
+- Multiple solution paths exist
+- Understanding evolves during analysis
+- Need to maintain reasoning chain
+- Complex multi-step problems
+- Revision might be necessary
+
+### ❌ Don't Use When:
+- Simple, straightforward tasks
+- Single-step operations
+- Well-defined scope upfront
+- Fast response needed
+- No ambiguity in approach
+
+## Best Practices
+
+### Effective Thought Construction
+
+**Good:**
+```
+"The database schema needs normalization. Let me analyze the current structure: 
+users table has redundant address fields. I should create a separate addresses table."
+```
+
+**Avoid:**
+```
+"I think about the database."
+```
+
+### Dynamic Planning
+
+- Start with conservative estimate (3-5 thoughts)
+- Increase if problem proves more complex
+- Decrease if solution becomes clear early
+- Don't over-think simple problems
+
+### Revision Strategy
+
+- Revise when new information contradicts previous understanding
+- Reference which thought is being reconsidered
+- Explain why revision is needed
+- Continue forward from revised understanding
+
+### Branching Strategy
+
+- Branch when multiple viable approaches exist
+- Give branches clear IDs ("approach-a", "redis-solution")
+- Note branch point explicitly
+- Can merge branches later with synthesis thought
+
+## Logging
+
+Control thought logging with environment variable:
+
+```yaml
+environment:
+  - DISABLE_THOUGHT_LOGGING=true  # Disable detailed logs
+  - DISABLE_THOUGHT_LOGGING=false # Enable logs (default)
+```
+
+Logs show:
+- Thought number and progress
+- Branch information
+- Revisions and their targets
+- Dynamic thought count adjustments
+
 ## MCP Protocol
 
 This server uses stdio transport. It expects MCP protocol messages on stdin and writes responses to stdout.
+
+## Related Flakes
+
+- **memory** - Store reasoning patterns and decisions long-term
+- **mcp-compress** - Compress large thought chains for storage
+- **claude-terminal-mcp** - Execute complex shell workflows

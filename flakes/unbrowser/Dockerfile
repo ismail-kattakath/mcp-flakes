@@ -18,7 +18,9 @@ RUN apt-get update && \
         pkg-config \
         libssl-dev \
         cmake \
-        g++ && \
+        g++ \
+        libclang-dev \
+        llvm-dev && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /build
