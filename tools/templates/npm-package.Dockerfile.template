@@ -1,0 +1,21 @@
+# {{name}} MCP Server Flake
+# Published npm package pattern
+# Package: {{package}}@{{version}}
+
+FROM {{runner_image}}
+
+# OCI labels for attribution
+LABEL org.opencontainers.image.source="{{repo}}"
+LABEL org.opencontainers.image.authors="{{authors}}"
+LABEL org.opencontainers.image.licenses="{{license}}"
+LABEL ai.mcp.flake.upstream.repo="{{repo}}"
+LABEL ai.mcp.flake.upstream.commit="{{commit}}"
+LABEL ai.mcp.flake.pattern="npm-package"
+
+# Install published package globally
+RUN npm install -g {{package}}@{{version}}
+
+WORKDIR /app
+
+# Set entrypoint
+ENTRYPOINT {{entrypoint}}

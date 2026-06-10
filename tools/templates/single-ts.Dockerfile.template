@@ -1,0 +1,34 @@
+# {{name}} MCP Server Flake
+# Built from: {{repo}} @ {{commit}}
+# Pattern: Single-package TypeScript
+
+FROM {{runner_image}}
+
+# OCI labels
+LABEL org.opencontainers.image.source="{{repo}}"
+LABEL org.opencontainers.image.authors="{{authors}}"
+LABEL org.opencontainers.image.licenses="{{license}}"
+LABEL ai.mcp.flake.upstream.repo="{{repo}}"
+LABEL ai.mcp.flake.upstream.commit="{{commit}}"
+LABEL ai.mcp.flake.pattern="single-ts"
+
+# Install git
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends git ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /repo
+
+# Clone and checkout
+RUN git clone --depth=1 {{repo}}.git . && \
+    git fetch --depth=1 origin {{commit}} && \
+    git checkout {{commit}}
+
+# Install and build
+RUN {{install_command}}
+{{#if build_command}}
+RUN {{build_command}}
+{{/if}}
+
+# Set entrypoint
+ENTRYPOINT {{entrypoint}}

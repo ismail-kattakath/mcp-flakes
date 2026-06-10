@@ -1,0 +1,43 @@
+# {{name}} MCP Server Flake
+# Built from: {{repo}} @ {{commit}}
+# Pattern: Monorepo (shared lockfile at root)
+
+FROM {{runner_image}}
+
+# OCI labels for attribution
+LABEL org.opencontainers.image.title="{{title}}"
+LABEL org.opencontainers.image.description="{{description}}"
+LABEL org.opencontainers.image.source="{{repo}}"
+LABEL org.opencontainers.image.revision="{{commit}}"
+LABEL org.opencontainers.image.licenses="{{license}}"
+LABEL org.opencontainers.image.authors="{{authors}}"
+LABEL org.opencontainers.image.documentation="{{documentation_url}}"
+LABEL ai.mcp.flake.upstream.repo="{{repo}}"
+LABEL ai.mcp.flake.upstream.commit="{{commit}}"
+LABEL ai.mcp.flake.pattern="monorepo"
+
+# Install git and ca-certificates
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    git \
+    ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /repo
+
+# Clone and checkout pinned commit
+RUN git clone --depth=1 {{repo}}.git . && \
+    git fetch --depth=1 origin {{commit}} && \
+    git checkout {{commit}}
+
+# Install dependencies from root lockfile
+RUN {{install_command}}
+
+# Build the subpackage
+RUN cd {{subpath}} && {{build_command}}
+
+# Set working directory to subpackage
+WORKDIR /repo/{{subpath}}
+
+# Set entrypoint
+ENTRYPOINT {{entrypoint}}

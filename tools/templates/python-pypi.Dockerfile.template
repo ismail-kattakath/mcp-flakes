@@ -1,0 +1,24 @@
+# {{name}} MCP Server Flake
+# Published PyPI package pattern
+# Package: {{package}}{{#if version}}=={{version}}{{/if}}
+
+FROM {{runner_image}}
+
+# OCI labels
+LABEL org.opencontainers.image.source="{{repo}}"
+LABEL org.opencontainers.image.authors="{{authors}}"
+LABEL org.opencontainers.image.licenses="{{license}}"
+LABEL ai.mcp.flake.upstream.repo="{{repo}}"
+LABEL ai.mcp.flake.upstream.commit="{{commit}}"
+LABEL ai.mcp.flake.pattern="python-pypi"
+
+# Install uv for fast package management
+RUN pip install uv
+
+# Install package
+RUN uv pip install --system {{package}}{{#if version}}=={{version}}{{/if}}{{#if extras}}[{{extras}}]{{/if}}
+
+WORKDIR /app
+
+# Set entrypoint
+ENTRYPOINT {{entrypoint}}

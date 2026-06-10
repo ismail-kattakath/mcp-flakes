@@ -30,6 +30,14 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # Final stage
 FROM python:3.12-slim-bookworm
 
+LABEL org.opencontainers.image.title="mcp-server-time" \
+      org.opencontainers.image.description="MCP server providing tools for time queries and timezone conversions" \
+      org.opencontainers.image.source="https://github.com/modelcontextprotocol/servers" \
+      org.opencontainers.image.revision="275175cda17ca9c49920ceed2bcf27e12e59f8b2" \
+      org.opencontainers.image.licenses="Apache-2.0 OR MIT" \
+      org.opencontainers.image.authors="Mariusz 'maledorak' Korzekwa; Model Context Protocol a Series of LF Projects, LLC." \
+      org.opencontainers.image.vendor="mcp-flakes"
+
 WORKDIR /app
 
 # Copy uv's managed Python and the virtual environment

@@ -1,0 +1,27 @@
+name: anyquery
+upstream:
+  repo: https://github.com/julien040/anyquery
+  commit: 66d5e684cd0a1a4086758aadaf3b22aee4e6e498
+  license: MIT
+runner: go
+build:
+  install: go build -o anyquery .
+  entrypoint: ["anyquery", "mcp", "--stdio"]
+transport: stdio
+env:
+  - name: ANYQUERY_CONFIG_DIR
+    required: false
+    secret: false
+    description: Directory for Anyquery configuration and plugins
+tools:
+  - anyquery_query
+  - anyquery_list_tables
+  - anyquery_describe_table
+resources:
+  - anyquery_documentation
+publish_image: true
+compliance:
+  license_verified: true
+  authors: ["Julien Riou"]
+  copyright: "Copyright (c) 2024 Julien Riou"
+  last_checked: 2026-06-09

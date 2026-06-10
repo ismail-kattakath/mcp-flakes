@@ -1,0 +1,17 @@
+services:
+  anyquery:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mcp-flakes/anyquery:latest
+    container_name: mcp-anyquery
+    stdin_open: true
+    tty: true
+    environment:
+      - ANYQUERY_CONFIG_DIR=/root/.config/anyquery
+    volumes:
+      - anyquery-data:/root/.config/anyquery
+    restart: unless-stopped
+
+volumes:
+  anyquery-data:

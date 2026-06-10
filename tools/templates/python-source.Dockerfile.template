@@ -1,0 +1,32 @@
+# {{name}} MCP Server Flake
+# Built from: {{repo}} @ {{commit}}
+# Pattern: Python source build with uv
+
+FROM {{runner_image}}
+
+# OCI labels
+LABEL org.opencontainers.image.source="{{repo}}"
+LABEL org.opencontainers.image.authors="{{authors}}"
+LABEL org.opencontainers.image.licenses="{{license}}"
+LABEL ai.mcp.flake.upstream.repo="{{repo}}"
+LABEL ai.mcp.flake.upstream.commit="{{commit}}"
+LABEL ai.mcp.flake.pattern="python-source"
+
+# Install git and uv
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends git ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+RUN pip install uv
+
+WORKDIR /repo
+
+# Clone and checkout
+RUN git clone --depth=1 {{repo}}.git . && \
+    git fetch --depth=1 origin {{commit}} && \
+    git checkout {{commit}}
+
+# Install dependencies
+RUN {{install_command}}
+
+# Set entrypoint
+ENTRYPOINT {{entrypoint}}
