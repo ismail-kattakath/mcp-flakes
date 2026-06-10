@@ -26,3 +26,8 @@ tools:
   - get_rise_set_times
   - plan_observing_session
 publish_image: true
+compliance:
+  license_verified: true
+  authors: ["gregario"]
+  copyright: "© 2026 gregario"
+  last_checked: 2024-06-09

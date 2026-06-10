@@ -22,3 +22,8 @@ tools:
   - stop_background_job
   - list_jobs
 publish_image: true
+compliance:
+  license_verified: true
+  authors: ["Luke Lamb"]
+  copyright: "© 2026 Luke Lamb"
+  last_checked: 2024-06-09

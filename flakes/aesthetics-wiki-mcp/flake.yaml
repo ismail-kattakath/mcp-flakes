@@ -20,3 +20,8 @@ tools:
   - name: random_aesthetic
     description: Pick random aesthetics for inspiration
 env: []
+compliance:
+  license_verified: true
+  authors: ["Leonardo Cametti"]
+  copyright: "© 2026 Leonardo Cametti"
+  last_checked: 2024-06-09

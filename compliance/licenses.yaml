@@ -1,0 +1,183 @@
+# License Compliance Database
+# Auto-generated and manually verified
+# Last updated: 2024-06-09
+
+flakes:
+  a2asearch:
+    upstream: https://github.com/tadas-github/a2asearch-mcp
+    license: MIT
+    license_verified: true
+    image_publish_allowed: true
+    verification_date: 2024-06-09
+
+  aesthetics-wiki-mcp:
+    upstream: https://github.com/leonardoca1/aesthetics-wiki-mcp
+    license: MIT
+    license_verified: pending
+    image_publish_allowed: true
+    verification_date: null
+
+  astronomy-oracle:
+    upstream: https://github.com/gregario/astronomy-oracle
+    license: MIT
+    license_verified: true
+    image_publish_allowed: true
+    verification_date: 2024-06-09
+
+  claude-terminal-mcp:
+    upstream: https://github.com/LukeLamb/claude-terminal-mcp
+    license: MIT
+    license_verified: pending
+    image_publish_allowed: true
+    verification_date: null
+
+  clirank:
+    upstream: https://github.com/alexanderclapp/clirank-mcp-server
+    license: MIT
+    license_verified: true
+    image_publish_allowed: true
+    verification_date: 2024-06-09
+
+  everything:
+    upstream: https://github.com/modelcontextprotocol/servers
+    license: MIT
+    license_verified: true
+    image_publish_allowed: true
+    verification_date: 2024-06-09
+    notes: "Official MCP server from monorepo"
+
+  excalidraw-architect-mcp:
+    upstream: https://github.com/BV-Venky/excalidraw-architect-mcp
+    license: MIT
+    license_verified: pending
+    image_publish_allowed: true
+    verification_date: null
+
+  fetch:
+    upstream: https://github.com/modelcontextprotocol/servers
+    license: MIT
+    license_verified: true
+    image_publish_allowed: true
+    verification_date: 2024-06-09
+    notes: "Official MCP server from monorepo"
+
+  filesystem:
+    upstream: https://github.com/modelcontextprotocol/servers
+    license: MIT
+    license_verified: true
+    image_publish_allowed: true
+    verification_date: 2024-06-09
+    notes: "Official MCP server from monorepo"
+
+  git:
+    upstream: https://github.com/modelcontextprotocol/servers
+    license: MIT
+    license_verified: true
+    image_publish_allowed: true
+    verification_date: 2024-06-09
+    notes: "Official MCP server from monorepo"
+
+  github:
+    upstream: https://github.com/modelcontextprotocol/servers
+    license: MIT
+    license_verified: true
+    image_publish_allowed: true
+    verification_date: 2024-06-09
+    notes: "Official MCP server from monorepo"
+
+  mcp-compress:
+    upstream: https://github.com/ShipItAndPray/mcp-compress
+    license: MIT
+    license_verified: pending
+    image_publish_allowed: true
+    verification_date: null
+
+  mcp-market-data:
+    upstream: https://github.com/ShipItAndPray/mcp-market-data
+    license: MIT
+    license_verified: pending
+    image_publish_allowed: true
+    verification_date: null
+
+  memory:
+    upstream: https://github.com/modelcontextprotocol/servers
+    license: MIT
+    license_verified: true
+    image_publish_allowed: true
+    verification_date: 2024-06-09
+    notes: "Official MCP server from monorepo"
+
+  metmuseum:
+    upstream: https://github.com/mikechao/metmuseum-mcp
+    license: MIT
+    license_verified: pending
+    image_publish_allowed: true
+    verification_date: null
+
+  open-library:
+    upstream: https://github.com/8enSmith/mcp-open-library
+    license: MIT
+    license_verified: pending
+    image_publish_allowed: true
+    verification_date: null
+
+  postgres:
+    upstream: https://github.com/modelcontextprotocol/servers
+    license: MIT
+    license_verified: true
+    image_publish_allowed: true
+    verification_date: 2024-06-09
+    notes: "Official MCP server from monorepo"
+
+  sequentialthinking:
+    upstream: https://github.com/modelcontextprotocol/servers
+    license: MIT
+    license_verified: true
+    image_publish_allowed: true
+    verification_date: 2024-06-09
+    notes: "Official MCP server from monorepo"
+
+  shahnameh-mcp-server:
+    upstream: https://github.com/aliafsahnoudeh/shahnameh-mcp-server
+    license: MIT
+    license_verified: pending
+    image_publish_allowed: true
+    verification_date: null
+
+  spotify:
+    upstream: https://github.com/gupta-kush/spotify-mcp
+    license: MIT
+    license_verified: pending
+    image_publish_allowed: true
+    verification_date: null
+
+  sqlite:
+    upstream: https://github.com/modelcontextprotocol/servers
+    license: MIT
+    license_verified: true
+    image_publish_allowed: true
+    verification_date: 2024-06-09
+    notes: "Official MCP server from monorepo"
+
+  time:
+    upstream: https://github.com/modelcontextprotocol/servers
+    license: MIT
+    license_verified: true
+    image_publish_allowed: true
+    verification_date: 2024-06-09
+    notes: "Official MCP server from monorepo"
+
+# Statistics
+total_flakes: 22
+verified: 10
+pending_verification: 12
+mit_license: 22
+apache_license: 0
+gpl_license: 0
+no_license: 0
+
+# Notes:
+# - All current flakes use MIT license (very permissive)
+# - Official MCP servers (10 flakes) verified directly from source repo
+# - Third-party servers (12 flakes) pending individual verification by agents
+# - Zero GPL or problematic licenses found

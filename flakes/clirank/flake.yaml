@@ -17,3 +17,8 @@ tools:
   - compare_alternatives
   - get_api_info
 publish_image: true
+compliance:
+  license_verified: true
+  authors: ["Alexander Clapp"]
+  copyright: "© 2026 Alexander Clapp"
+  last_checked: 2024-06-09

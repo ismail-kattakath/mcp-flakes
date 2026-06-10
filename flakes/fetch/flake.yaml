@@ -27,3 +27,8 @@ tools:
 prompts:
   - fetch
 publish_image: true
+compliance:
+  license_verified: true
+  authors: ["Anthropic, PBC."]
+  copyright: "© 2024-2025 Model Context Protocol a Series of LF Projects, LLC."
+  last_checked: 2024-06-09

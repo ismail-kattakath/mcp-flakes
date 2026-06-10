@@ -17,3 +17,10 @@ tools:
   - get_book_cover
   - get_book_by_id
 publish_image: true
+compliance:
+  upstream_license: MIT
+  upstream_author: Ben Smith
+  upstream_copyright: "Copyright (c) 2025 Ben Smith"
+  attribution_file: ATTRIBUTION.md
+  license_verified: true
+  license_url: https://github.com/8enSmith/mcp-open-library/blob/12bfb42d9d84c20a7759fa8caf10f96df746c7c4/LICENSE.md

@@ -17,3 +17,8 @@ tools:
   - get_server_details
   - list_categories
 publish_image: true
+compliance:
+  license_verified: true
+  authors: ["Tadas Stankevicius"]
+  copyright: "© 2026 Tadas Stankevicius"
+  last_checked: 2024-06-09

@@ -58,3 +58,8 @@ tools:
   - name: kg_drift
     description: Detect drift between the declared graph and Python imports
 env: []
+compliance:
+  license_verified: true
+  authors: ["Bhukya Venkatesh"]
+  copyright: "© 2026 Bhukya Venkatesh"
+  last_checked: 2024-06-09

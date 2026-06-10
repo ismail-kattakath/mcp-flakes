@@ -31,3 +31,8 @@ tools:
   - trigger-sampling-request-async
   - trigger-elicitation-request-async
 publish_image: true
+compliance:
+  license_verified: true
+  authors: ["Model Context Protocol a Series of LF Projects, LLC."]
+  copyright: "© 2024-2025 Model Context Protocol a Series of LF Projects, LLC."
+  last_checked: 2024-06-09
