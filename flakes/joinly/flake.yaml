@@ -1,0 +1,31 @@
+name: joinly
+upstream:
+  repo: https://github.com/joinly-ai/joinly
+  commit: HEAD
+  license: MIT
+  package: joinly
+  package_version: 0.5.3
+runner: python
+build:
+  install: uv pip install joinly==0.5.3
+  entrypoint: ["python", "-m", "joinly"]
+transport: stdio
+env:
+  - JOINLY_API_KEY
+tools:
+  - join_meeting
+  - leave_meeting
+  - list_active_meetings
+  - get_transcript
+  - speak_in_meeting
+  - send_chat_message
+  - get_meeting_info
+  - get_participants
+  - record_meeting
+  - stop_recording
+publish_image: true
+compliance:
+  license_verified: true
+  authors: ["Joinly AI Team"]
+  copyright: "© 2026 Joinly AI"
+  last_checked: 2026-06-09

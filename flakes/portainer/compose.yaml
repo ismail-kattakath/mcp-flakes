@@ -1,0 +1,10 @@
+services:
+  mcp-portainer:
+    image: ghcr.io/mcp-flakes/portainer:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    stdin_open: true
+    environment:
+      - PORTAINER_URL=${PORTAINER_URL}
+      - PORTAINER_API_KEY=${PORTAINER_API_KEY}

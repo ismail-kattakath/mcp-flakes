@@ -1,0 +1,10 @@
+services:
+  mcp-serpapi:
+    image: ghcr.io/mcp-flakes/serpapi-mcp:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - SERPAPI_API_KEY=${SERPAPI_API_KEY}

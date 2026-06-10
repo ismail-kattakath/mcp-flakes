@@ -1,0 +1,30 @@
+services:
+  redis-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mcp-flakes/redis-mcp:latest
+    container_name: redis-mcp
+    environment:
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      - REDIS_USERNAME=${REDIS_USERNAME:-default}
+      - REDIS_DB=${REDIS_DB:-0}
+      - REDIS_CLUSTER_MODE=${REDIS_CLUSTER_MODE:-false}
+      - MCP_DOCS_SEARCH_URL=${MCP_DOCS_SEARCH_URL:-}
+    depends_on:
+      - redis
+    stdin_open: true
+    tty: true
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis-server
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+
+volumes:
+  redis-data:

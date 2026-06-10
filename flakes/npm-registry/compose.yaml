@@ -1,0 +1,10 @@
+services:
+  mcp-npm-registry:
+    image: ghcr.io/mcp-flakes/npm-registry:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    stdin_open: true
+    environment:
+      - NPM_TOKEN=${NPM_TOKEN:-}
+      - NPM_REGISTRY=${NPM_REGISTRY:-https://registry.npmjs.org}

@@ -1,0 +1,11 @@
+services:
+  slack:
+    image: mcp/slack:4.4.0
+    build:
+      context: .
+      dockerfile: Dockerfile
+    stdin_open: true
+    environment:
+      - SLACK_TOKEN=${SLACK_TOKEN}
+      - SLACK_COOKIE=${SLACK_COOKIE:-}
+    entrypoint: ["node", "src/server.js"]

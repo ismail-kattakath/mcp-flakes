@@ -1,0 +1,122 @@
+name: portainer
+version: 2.42.5
+description: Portainer MCP Server - manage Docker, Kubernetes, stacks, and Helm via natural language
+language: python
+packageManager: uv
+
+upstream:
+  repo: https://github.com/portainer/portainer-mcp
+  commit: 4bfeecb2eb45654f09b0945d5582fc329291a275
+  path: .
+  license: MIT
+
+tools:
+  - name: list_endpoints
+    description: List all Portainer endpoints (Docker/Kubernetes)
+  - name: get_endpoint
+    description: Get details about a specific endpoint
+  - name: list_containers
+    description: List containers on an endpoint
+  - name: get_container
+    description: Get container details
+  - name: start_container
+    description: Start a stopped container
+  - name: stop_container
+    description: Stop a running container
+  - name: restart_container
+    description: Restart a container
+  - name: remove_container
+    description: Remove a container
+  - name: inspect_container
+    description: Inspect container configuration
+  - name: list_images
+    description: List Docker images
+  - name: pull_image
+    description: Pull a Docker image
+  - name: remove_image
+    description: Remove a Docker image
+  - name: list_volumes
+    description: List Docker volumes
+  - name: create_volume
+    description: Create a new volume
+  - name: remove_volume
+    description: Remove a volume
+  - name: list_networks
+    description: List Docker networks
+  - name: create_network
+    description: Create a new network
+  - name: remove_network
+    description: Remove a network
+  - name: list_stacks
+    description: List Docker Compose stacks
+  - name: get_stack
+    description: Get stack details
+  - name: create_stack
+    description: Create a new stack from compose file
+  - name: update_stack
+    description: Update an existing stack
+  - name: delete_stack
+    description: Delete a stack
+  - name: list_services
+    description: List Docker Swarm services
+  - name: scale_service
+    description: Scale a service
+  - name: update_service
+    description: Update service configuration
+  - name: list_kubernetes_namespaces
+    description: List Kubernetes namespaces
+  - name: list_kubernetes_pods
+    description: List pods in a namespace
+  - name: list_kubernetes_deployments
+    description: List Kubernetes deployments
+  - name: list_kubernetes_services
+    description: List Kubernetes services
+  - name: list_helm_releases
+    description: List Helm releases
+  - name: install_helm_chart
+    description: Install a Helm chart
+  - name: upgrade_helm_release
+    description: Upgrade a Helm release
+  - name: uninstall_helm_release
+    description: Uninstall a Helm release
+  - name: get_container_logs
+    description: Get container logs
+  - name: get_container_stats
+    description: Get container resource statistics
+
+env:
+  required:
+    - name: PORTAINER_URL
+      description: Portainer server URL
+      example: "https://portainer.example.com"
+      sensitive: false
+    - name: PORTAINER_API_KEY
+      description: Portainer API access token
+      example: "ptr_xxxxxxxxxxxxxxxx"
+      sensitive: true
+
+build:
+  context: .
+  dockerfile: Dockerfile
+
+runtime:
+  entrypoint: ["python", "-m", "portainer_mcp.server"]
+
+notes: |
+  - Official Portainer MCP server
+  - Requires Portainer instance (CE or Business Edition)
+  - Create API key at: Portainer > User settings > Access tokens
+  - Manage Docker containers, images, volumes, networks, stacks
+  - Full Kubernetes support: pods, deployments, services, namespaces
+  - Helm chart management included
+  - Docker Swarm service orchestration
+  - Real-time container logs and statistics
+  - Natural language interface to container infrastructure
+
+compliance:
+  attribution_file: ATTRIBUTION.md
+  license_verified: true
+  license_compatible: true
+  copyright_holders:
+    - "Portainer.io"
+  upstream_license_url: https://github.com/portainer/portainer-mcp/blob/main/LICENSE

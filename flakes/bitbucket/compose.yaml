@@ -1,0 +1,10 @@
+services:
+  mcp-bitbucket:
+    image: ghcr.io/mcp-flakes/bitbucket:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    stdin_open: true
+    environment:
+      - BITBUCKET_USERNAME=${BITBUCKET_USERNAME}
+      - BITBUCKET_APP_PASSWORD=${BITBUCKET_APP_PASSWORD}

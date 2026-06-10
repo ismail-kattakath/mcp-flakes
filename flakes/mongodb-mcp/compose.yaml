@@ -1,0 +1,31 @@
+services:
+  mongodb-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mcp-flakes/mongodb-mcp:latest
+    container_name: mongodb-mcp
+    environment:
+      - MCP_MONGODB_URI=${MCP_MONGODB_URI:-mongodb://mongodb:27017/testdb}
+      - MCP_MONGODB_READONLY=${MCP_MONGODB_READONLY:-false}
+      - MONGODB_OBJECTID_MODE=${MONGODB_OBJECTID_MODE:-auto}
+    depends_on:
+      - mongodb
+    stdin_open: true
+    tty: true
+    command: ${MCP_MONGODB_URI:-mongodb://mongodb:27017/testdb}
+
+  mongodb:
+    image: mongo:7
+    container_name: mongodb-server
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGODB_USERNAME:-admin}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGODB_PASSWORD:-password}
+      - MONGO_INITDB_DATABASE=${MONGODB_DATABASE:-testdb}
+    volumes:
+      - mongodb-data:/data/db
+
+volumes:
+  mongodb-data:

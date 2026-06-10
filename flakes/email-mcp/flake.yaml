@@ -1,0 +1,39 @@
+name: email-mcp
+upstream:
+  repo: https://github.com/codefuturist/email-mcp
+  commit: HEAD
+  license: MIT
+  package: "@codefuturist/email-mcp"
+  package_version: 0.2.3
+runner: node
+build:
+  install: npm install -g @codefuturist/email-mcp@0.2.3
+  entrypoint: ["npx", "-y", "@codefuturist/email-mcp"]
+transport: stdio
+env:
+  - EMAIL_ACCOUNTS
+tools:
+  - list_accounts
+  - list_mailboxes
+  - search_emails
+  - read_email
+  - send_email
+  - reply_email
+  - forward_email
+  - move_email
+  - delete_email
+  - mark_read
+  - mark_unread
+  - create_mailbox
+  - delete_mailbox
+  - list_attachments
+  - download_attachment
+  - schedule_send
+  - triage_emails
+  - get_notifications
+publish_image: true
+compliance:
+  license_verified: true
+  authors: ["CodeFuturist"]
+  copyright: "© 2026 CodeFuturist"
+  last_checked: 2026-06-09

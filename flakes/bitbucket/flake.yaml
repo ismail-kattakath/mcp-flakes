@@ -1,0 +1,86 @@
+name: bitbucket
+version: 3.1.0
+description: Atlassian Bitbucket Cloud MCP Server - workspaces, repositories, pull requests, and code management
+language: typescript
+packageManager: npm
+
+upstream:
+  repo: https://github.com/aashari/mcp-server-atlassian-bitbucket
+  commit: 19b2b386c800c95cd7a7a44446f950ec661b0d91
+  path: .
+  license: MIT
+
+tools:
+  - name: workspace_list
+    description: List all accessible workspaces
+  - name: workspace_get
+    description: Get workspace details by slug
+  - name: repository_list
+    description: List repositories in a workspace
+  - name: repository_get
+    description: Get repository details
+  - name: repository_search
+    description: Search repositories across workspaces
+  - name: pullrequest_list
+    description: List pull requests in a repository
+  - name: pullrequest_get
+    description: Get pull request details
+  - name: pullrequest_create
+    description: Create a new pull request
+  - name: pullrequest_update
+    description: Update an existing pull request
+  - name: pullrequest_merge
+    description: Merge a pull request
+  - name: pullrequest_decline
+    description: Decline a pull request
+  - name: pullrequest_comment
+    description: Add comment to pull request
+  - name: commit_list
+    description: List commits in a repository
+  - name: commit_get
+    description: Get commit details
+  - name: branch_list
+    description: List branches in a repository
+  - name: branch_get
+    description: Get branch details
+  - name: branch_create
+    description: Create a new branch
+  - name: branch_delete
+    description: Delete a branch
+  - name: file_get
+    description: Get file contents from repository
+  - name: file_search
+    description: Search for files in repository
+
+env:
+  required:
+    - name: BITBUCKET_USERNAME
+      description: Bitbucket username or app ID
+      example: "your-username"
+      sensitive: false
+    - name: BITBUCKET_APP_PASSWORD
+      description: Bitbucket app password or OAuth token
+      example: "your-app-password"
+      sensitive: true
+
+build:
+  context: .
+  dockerfile: Dockerfile
+
+runtime:
+  entrypoint: ["node", "dist/index.js"]
+
+notes: |
+  - Requires Bitbucket Cloud account with App Password
+  - Create app password at: https://bitbucket.org/account/settings/app-passwords/
+  - Supports both stdio and HTTP transports (HTTP via TRANSPORT_MODE=http)
+  - Full API access to workspaces, repos, PRs, commits, branches, and files
+  - Comprehensive error handling with detailed messages
+
+compliance:
+  attribution_file: ATTRIBUTION.md
+  license_verified: true
+  license_compatible: true
+  copyright_holders:
+    - "Ahmad Asyhari"
+  upstream_license_url: https://github.com/aashari/mcp-server-atlassian-bitbucket/blob/main/LICENSE

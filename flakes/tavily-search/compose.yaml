@@ -1,0 +1,10 @@
+services:
+  mcp-tavily-search:
+    image: ghcr.io/mcp-flakes/tavily-search:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    stdin_open: true
+    environment:
+      - TAVILY_API_KEY=${TAVILY_API_KEY}
+      - PYTHONIOENCODING=utf-8

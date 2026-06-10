@@ -1,0 +1,94 @@
+name: jenkins
+version: 1.0.7
+description: Jenkins CI/CD MCP Server - trigger jobs, monitor builds, manage Jenkins instances
+language: python
+packageManager: uv
+
+upstream:
+  repo: https://github.com/avisangle/jenkins-mcp-server
+  commit: c83c9f77c5f8c30c08061beb67d5d9107f290c5b
+  path: .
+  license: MIT
+
+tools:
+  - name: get_jobs
+    description: List all Jenkins jobs
+  - name: get_job_info
+    description: Get detailed information about a specific job
+  - name: get_build_info
+    description: Get information about a specific build
+  - name: get_last_build_info
+    description: Get information about the last build of a job
+  - name: get_queue_info
+    description: Get information about items in the build queue
+  - name: get_node_info
+    description: Get information about a Jenkins node
+  - name: get_all_nodes
+    description: List all Jenkins nodes (agents)
+  - name: trigger_build
+    description: Trigger a new build for a job
+  - name: trigger_build_with_parameters
+    description: Trigger a parameterized build
+  - name: stop_build
+    description: Stop a running build
+  - name: get_build_console_output
+    description: Get console output from a build
+  - name: enable_job
+    description: Enable a Jenkins job
+  - name: disable_job
+    description: Disable a Jenkins job
+  - name: delete_job
+    description: Delete a Jenkins job
+  - name: get_build_test_report
+    description: Get test report from a build
+  - name: get_build_artifacts
+    description: List artifacts from a build
+  - name: get_jenkins_version
+    description: Get Jenkins server version
+  - name: get_plugin_info
+    description: Get information about installed plugins
+  - name: search_jobs
+    description: Search for jobs by name pattern
+  - name: get_job_config
+    description: Get XML configuration of a job
+  - name: get_pipeline_stages
+    description: Get pipeline stages information
+
+env:
+  required:
+    - name: JENKINS_URL
+      description: Jenkins server URL
+      example: "https://jenkins.example.com"
+      sensitive: false
+    - name: JENKINS_USERNAME
+      description: Jenkins username
+      example: "your-username"
+      sensitive: false
+    - name: JENKINS_API_TOKEN
+      description: Jenkins API token or password
+      example: "your-api-token"
+      sensitive: true
+
+build:
+  context: .
+  dockerfile: Dockerfile
+
+runtime:
+  entrypoint: ["python", "-m", "mcp_jenkins_server"]
+
+notes: |
+  - Requires Jenkins server with API access enabled
+  - Create API token at: Jenkins > User > Configure > API Token
+  - Supports multi-tier caching for performance
+  - CSRF protection and 2FA support included
+  - Batch operations support for managing multiple jobs
+  - Pipeline monitoring with stage-level details
+  - Artifact management and test report access
+
+compliance:
+  attribution_file: ATTRIBUTION.md
+  license_verified: true
+  license_compatible: true
+  copyright_holders:
+    - "Avinash Sangle"
+  upstream_license_url: https://github.com/avisangle/jenkins-mcp-server/blob/main/LICENSE

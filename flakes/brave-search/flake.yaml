@@ -1,0 +1,29 @@
+name: brave-search
+upstream:
+  repo: https://github.com/brave/brave-search-mcp-server
+  commit: d915fade87c28d09c0338dd7a5d05d2dc41104c1
+  license: MIT
+runner: node
+build:
+  install: npm ci
+  build: npm run build
+  entrypoint: ["node", "dist/index.js"]
+transport: stdio
+env:
+  - name: BRAVE_API_KEY
+    required: true
+    secret: true
+    description: Brave Search API key from https://brave.com/search/api/
+tools:
+  - brave_web_search
+  - brave_local_search
+  - brave_image_search
+  - brave_video_search
+  - brave_news_search
+  - brave_summarizer
+publish_image: true
+compliance:
+  license_verified: true
+  authors: ["Brave Software, Inc."]
+  copyright: "© 2024 Brave Software, Inc."
+  last_checked: 2026-06-09

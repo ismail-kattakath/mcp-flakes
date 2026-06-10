@@ -1,0 +1,10 @@
+services:
+  discord:
+    image: mcp/discord:1.2.0
+    build:
+      context: .
+      dockerfile: Dockerfile
+    stdin_open: true
+    environment:
+      - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
+    entrypoint: ["node", "dist/index.js"]

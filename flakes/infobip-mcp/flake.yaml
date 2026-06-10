@@ -1,0 +1,72 @@
+name: infobip-mcp
+upstream:
+  repo: https://github.com/Infobip/mcp
+  commit: HEAD
+  license: Apache-2.0
+  package: com.infobip/mcp
+  package_version: 2.0.0
+runner: remote
+build:
+  type: hosted-remote
+  transport: streamable-http
+  endpoints:
+    - name: sms
+      url: https://mcp.infobip.com/sms
+      type: streamable-http
+    - name: sms-sse
+      url: https://mcp.infobip.com/sms/sse
+      type: sse
+    - name: whatsapp
+      url: https://mcp.infobip.com/whatsapp
+      type: streamable-http
+    - name: whatsapp-sse
+      url: https://mcp.infobip.com/whatsapp/sse
+      type: sse
+    - name: viber
+      url: https://mcp.infobip.com/viber
+      type: streamable-http
+    - name: viber-sse
+      url: https://mcp.infobip.com/viber/sse
+      type: sse
+    - name: rcs
+      url: https://mcp.infobip.com/rcs
+      type: streamable-http
+    - name: rcs-sse
+      url: https://mcp.infobip.com/rcs/sse
+      type: sse
+    - name: 2fa
+      url: https://mcp.infobip.com/2fa
+      type: streamable-http
+    - name: people
+      url: https://mcp.infobip.com/people
+      type: streamable-http
+    - name: account-management
+      url: https://mcp.infobip.com/account-management
+      type: streamable-http
+    - name: search
+      url: https://mcp.infobip.com/search
+      type: streamable-http
+transport: streamable-http
+env:
+  - INFOBIP_API_KEY
+tools:
+  - send_sms
+  - send_bulk_sms
+  - get_sms_status
+  - send_whatsapp_message
+  - send_whatsapp_template
+  - send_viber_message
+  - send_rcs_message
+  - verify_phone_number
+  - send_2fa_code
+  - verify_2fa_code
+  - manage_contacts
+  - search_messages
+  - get_delivery_reports
+  - manage_sender_ids
+publish_image: false
+compliance:
+  license_verified: true
+  authors: ["Infobip Ltd."]
+  copyright: "© 2026 Infobip Ltd."
+  last_checked: 2026-06-09

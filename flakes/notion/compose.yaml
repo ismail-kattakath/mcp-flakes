@@ -1,0 +1,10 @@
+services:
+  notion:
+    image: mcp/notion:2.34.7
+    build:
+      context: .
+      dockerfile: Dockerfile
+    stdin_open: true
+    environment:
+      - NOTION_API_KEY=${NOTION_API_KEY}
+    entrypoint: ["node", "build/src/init-server.js"]

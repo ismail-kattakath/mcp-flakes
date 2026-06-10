@@ -1,0 +1,10 @@
+services:
+  mcp-gemini-bridge:
+    image: ghcr.io/mcp-flakes/gemini-bridge:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    stdin_open: true
+    tty: false
+    environment:
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}

@@ -1,0 +1,10 @@
+services:
+  mcp-deepseek:
+    image: ghcr.io/mcp-flakes/deepseek-mcp:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    stdin_open: true
+    tty: false
+    environment:
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}

@@ -1,0 +1,31 @@
+name: fast-mcp-telegram
+upstream:
+  repo: https://github.com/leshchenko1979/fast-mcp-telegram
+  commit: HEAD
+  license: MIT
+  package: fast-mcp-telegram
+  package_version: 0.29.0
+runner: python
+build:
+  install: uv pip install fast-mcp-telegram==0.29.0
+  entrypoint: ["python", "-m", "fast-mcp-telegram"]
+transport: stdio
+env:
+  - TELEGRAM_API_ID
+  - TELEGRAM_API_HASH
+  - TELEGRAM_PHONE_NUMBER
+tools:
+  - get_chats
+  - get_messages
+  - search_messages
+  - send_message
+  - send_file
+  - download_media
+  - get_user_info
+  - get_chat_info
+publish_image: true
+compliance:
+  license_verified: true
+  authors: ["Alexey Leshchenko"]
+  copyright: "© 2026 Alexey Leshchenko"
+  last_checked: 2026-06-09

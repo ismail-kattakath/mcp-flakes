@@ -1,0 +1,29 @@
+name: exa-search
+upstream:
+  repo: https://github.com/exa-labs/exa-mcp-server
+  commit: 9ea4ba3e67f87c462c3e06b192470e837ed9009e
+  license: MIT
+runner: node
+build:
+  install: npm ci
+  build: npm run build
+  entrypoint: ["node", "dist/index.js"]
+transport: http
+http:
+  port: 3000
+  path: /mcp
+env:
+  - name: EXA_API_KEY
+    required: true
+    secret: true
+    description: Exa AI Search API key from https://dashboard.exa.ai/api-keys
+tools:
+  - exa_search
+  - exa_find_similar
+  - exa_get_contents
+publish_image: true
+compliance:
+  license_verified: true
+  authors: ["Exa Labs, Inc."]
+  copyright: "© 2024 Exa Labs, Inc."
+  last_checked: 2026-06-09

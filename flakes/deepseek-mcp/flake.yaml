@@ -1,0 +1,36 @@
+name: deepseek-mcp
+version: 1.7.0
+description: MCP server for DeepSeek AI with chat, reasoning, multi-turn sessions, function calling, thinking mode, and cost tracking.
+runner: node
+source:
+  repo: https://github.com/arikusi/deepseek-mcp-server
+  commit: 5e1302171e9941bacc2ec2f83fe313c914614328
+build:
+  type: npm-package
+  package: "@arikusi/deepseek-mcp-server"
+  package_version: "1.7.0"
+  install: npm install -g @arikusi/deepseek-mcp-server@1.7.0
+  entrypoint: ["npx", "-y", "@arikusi/deepseek-mcp-server"]
+transport: stdio
+tools:
+  - name: deepseek_chat
+    description: Chat with DeepSeek V3.2 models (chat and reasoner)
+  - name: deepseek_sessions
+    description: Manage chat sessions (list, delete, clear)
+  - name: deepseek_models
+    description: List available DeepSeek models with pricing
+  - name: deepseek_config
+    description: View current configuration
+  - name: deepseek_usage
+    description: Track token usage and costs
+env:
+  - name: DEEPSEEK_API_KEY
+    required: true
+    secret: true
+    description: Your DeepSeek API key from platform.deepseek.com
+publish_image: true
+compliance:
+  license_verified: true
+  authors: ["arikusi"]
+  copyright: "© 2026 arikusi"
+  last_checked: 2024-06-09

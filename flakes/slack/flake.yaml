@@ -1,0 +1,91 @@
+name: slack
+version: 4.4.0
+description: Slack MCP Server - Session-based Slack integration with 21 tools for messages, channels, search, and workflow automation
+language: javascript
+packageManager: npm
+
+upstream:
+  repo: https://github.com/jtalk22/slack-mcp-server
+  commit: b57674e
+  license: MIT
+
+tools:
+  - name: slack_search_messages
+    description: Search messages across all channels
+  - name: slack_get_channel_history
+    description: Get recent messages from a channel
+  - name: slack_get_thread
+    description: Get all messages in a thread
+  - name: slack_send_message
+    description: Send a message to a channel
+  - name: slack_reply_to_thread
+    description: Reply to a message thread
+  - name: slack_list_channels
+    description: List all channels in workspace
+  - name: slack_get_channel_info
+    description: Get details about a channel
+  - name: slack_get_user_info
+    description: Get details about a user
+  - name: slack_list_users
+    description: List all users in workspace
+  - name: slack_get_unread_count
+    description: Get unread message count
+  - name: slack_mark_as_read
+    description: Mark messages as read
+  - name: slack_add_reaction
+    description: Add emoji reaction to a message
+  - name: slack_remove_reaction
+    description: Remove emoji reaction from a message
+  - name: slack_get_permalink
+    description: Get permanent link to a message
+  - name: slack_workflow_save
+    description: Save a workflow profile
+  - name: slack_workflows
+    description: Get structured workflow output
+  - name: slack_list_bookmarks
+    description: List channel bookmarks
+  - name: slack_search_files
+    description: Search for files in workspace
+  - name: slack_get_reminders
+    description: List active reminders
+  - name: slack_create_reminder
+    description: Create a new reminder
+  - name: slack_health
+    description: Check token health and connectivity
+
+env:
+  required:
+    - name: SLACK_TOKEN
+      description: Slack user token (xoxc-...) or session cookie
+      example: "xoxc-xxxxxxxxxxxxx-xxxxxxxxxxxxx-xxxxxxxxxxxxx"
+      sensitive: true
+  optional:
+    - name: SLACK_COOKIE
+      description: Slack session cookie (d=...; optional, auto-extracted on macOS)
+      example: "d=xxxxxxxxxxxxxxxxxxx..."
+      sensitive: true
+
+build:
+  context: .
+  dockerfile: Dockerfile
+
+runtime:
+  entrypoint: ["node", "src/server.js"]
+
+notes: |
+  - Session-based authentication (no OAuth, no admin approval required)
+  - Auto-extracts tokens from Chrome/Brave on macOS
+  - Tokens stored securely in ~/.slack-mcp-tokens.json (chmod 600) or macOS Keychain
+  - Run --setup wizard: npx -y @jtalk22/slack-mcp --setup
+  - Workflow primitives for structured AI automation
+  - No bot user visible in workspace admin panel
+  - Compatible with Claude Code, Cursor, Windsurf, Copilot
+  - Health monitoring with automatic refresh warnings
+
+compliance:
+  attribution_file: ATTRIBUTION.md
+  license_verified: true
+  license_compatible: true
+  copyright_holders:
+    - "jtalk22"
+  upstream_license_url: https://github.com/jtalk22/slack-mcp-server/blob/main/LICENSE

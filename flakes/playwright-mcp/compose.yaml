@@ -1,0 +1,10 @@
+services:
+  mcp-playwright:
+    image: ghcr.io/mcp-flakes/playwright-mcp:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    stdin_open: true
+    shm_size: 2gb
+    environment:
+      - PLAYWRIGHT_BROWSERS_PATH=/ms-playwright

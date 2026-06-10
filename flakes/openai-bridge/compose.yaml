@@ -1,0 +1,10 @@
+services:
+  mcp-openai-bridge:
+    image: ghcr.io/mcp-flakes/openai-bridge:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    stdin_open: true
+    tty: false
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}

@@ -1,0 +1,120 @@
+name: npm-registry
+version: 1.2.1
+description: npm Registry MCP Server - publish, install, audit, search, and manage npm packages
+language: typescript
+packageManager: npm
+
+upstream:
+  repo: https://github.com/mikusnuz/npm-mcp
+  commit: 6c32032b320128283f3b2c2716242484084215cf
+  path: .
+  license: MIT
+
+tools:
+  - name: npm_publish
+    description: Publish a package to npm registry
+  - name: npm_unpublish
+    description: Unpublish a package from npm registry
+  - name: npm_install
+    description: Install a package
+  - name: npm_uninstall
+    description: Uninstall a package
+  - name: npm_update
+    description: Update packages
+  - name: npm_outdated
+    description: Check for outdated packages
+  - name: npm_search
+    description: Search npm registry for packages
+  - name: npm_view
+    description: View package information
+  - name: npm_info
+    description: Get detailed package information
+  - name: npm_versions
+    description: List all versions of a package
+  - name: npm_dist_tags
+    description: Manage distribution tags
+  - name: npm_audit
+    description: Run security audit on dependencies
+  - name: npm_audit_fix
+    description: Automatically fix vulnerabilities
+  - name: npm_doctor
+    description: Check npm environment health
+  - name: npm_ping
+    description: Ping npm registry
+  - name: npm_whoami
+    description: Display npm username
+  - name: npm_team
+    description: Manage organization teams
+  - name: npm_access
+    description: Set access level on published packages
+  - name: npm_owner
+    description: Manage package owners
+  - name: npm_org
+    description: Manage organization settings
+  - name: npm_token
+    description: Manage authentication tokens
+  - name: npm_profile
+    description: Manage user profile
+  - name: npm_hook
+    description: Manage registry hooks
+  - name: npm_star
+    description: Mark package as favorite
+  - name: npm_unstar
+    description: Remove favorite mark
+  - name: npm_stars
+    description: View starred packages
+  - name: npm_deprecate
+    description: Deprecate a package version
+  - name: npm_pack
+    description: Create a tarball from a package
+  - name: npm_link
+    description: Create symbolic link to package
+  - name: npm_unlink
+    description: Remove symbolic link
+  - name: npm_shrinkwrap
+    description: Lock down dependency versions
+  - name: npm_version
+    description: Bump package version
+  - name: npm_ci
+    description: Clean install from package-lock
+  - name: npm_dedupe
+    description: Reduce dependency duplication
+  - name: npm_prune
+    description: Remove extraneous packages
+  - name: npm_fund
+    description: Retrieve funding information
+
+env:
+  optional:
+    - name: NPM_TOKEN
+      description: npm authentication token (required for publish/private packages)
+      example: "npm_xxxxxxxxxxxxxxxxxxxxx"
+      sensitive: true
+    - name: NPM_REGISTRY
+      description: Custom npm registry URL
+      example: "https://registry.npmjs.org"
+      sensitive: false
+
+build:
+  context: .
+  dockerfile: Dockerfile
+
+runtime:
+  entrypoint: ["node", "dist/index.js"]
+
+notes: |
+  - NPM_TOKEN required for publishing and private package access
+  - Create token at: https://www.npmjs.com/settings/[username]/tokens
+  - Supports all standard npm registry operations
+  - Works with both public and private npm registries
+  - Team and organization management included
+  - Security audit and vulnerability fixing built-in
+  - No authentication required for public package queries
+
+compliance:
+  attribution_file: ATTRIBUTION.md
+  license_verified: true
+  license_compatible: true
+  copyright_holders:
+    - "mikusnuz"
+  upstream_license_url: https://github.com/mikusnuz/npm-mcp/blob/main/LICENSE

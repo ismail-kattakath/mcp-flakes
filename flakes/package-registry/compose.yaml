@@ -1,0 +1,7 @@
+services:
+  mcp-package-registry:
+    image: ghcr.io/mcp-flakes/package-registry:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    stdin_open: true

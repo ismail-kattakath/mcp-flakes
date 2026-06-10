@@ -1,0 +1,25 @@
+name: gemini-bridge
+version: latest
+description: MCP Server - Bridge to Google Gemini API. Access Gemini Pro and Flash models through MCP.
+runner: python
+source:
+  repo: https://github.com/jaspertvdm/mcp-server-gemini-bridge
+  commit: 7dd7440a3a98ec46d78ee3ccb19aba9385329602
+build:
+  type: pypi
+  package: mcp-server-gemini-bridge
+tools:
+  - name: gemini_chat
+    description: Send chat messages to Gemini models (Gemini Pro, Flash, etc.)
+  - name: gemini_completion
+    description: Generate text completions using Gemini API
+env:
+  - name: GOOGLE_API_KEY
+    required: true
+    secret: true
+    description: Your Google AI API key
+compliance:
+  license_verified: true
+  authors: ["Jasper van de Meent"]
+  copyright: "© 2026 Jasper van de Meent"
+  last_checked: 2024-06-09

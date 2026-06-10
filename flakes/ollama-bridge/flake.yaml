@@ -1,0 +1,28 @@
+name: ollama-bridge
+version: latest
+description: MCP Server - Bridge to local Ollama LLM server. Run Llama, Mistral, Qwen and other local models through MCP.
+runner: python
+source:
+  repo: https://github.com/jaspertvdm/mcp-server-ollama-bridge
+  commit: ff7132bb618c5fe2a78c747d61a2429e2f3d4c1f
+build:
+  type: pypi
+  package: mcp-server-ollama-bridge
+tools:
+  - name: ollama_chat
+    description: Send chat messages to local Ollama models
+  - name: ollama_list_models
+    description: List all available Ollama models on the server
+  - name: ollama_pull_model
+    description: Pull a model from Ollama registry
+env:
+  - name: OLLAMA_HOST
+    required: false
+    secret: false
+    description: Ollama server URL (default http://localhost:11434)
+    default: http://localhost:11434
+compliance:
+  license_verified: true
+  authors: ["Jasper van de Meent"]
+  copyright: "© 2026 Jasper van de Meent"
+  last_checked: 2024-06-09

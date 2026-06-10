@@ -1,0 +1,32 @@
+name: playwright-mcp
+upstream:
+  repo: https://github.com/microsoft/playwright-mcp
+  commit: b301c372ec741289eff1cf6aab9d3bec553f31e2
+  license: Apache-2.0
+runner: node-playwright
+build:
+  install: npm ci
+  entrypoint: ["npx", "@playwright/mcp@latest"]
+transport: stdio
+env:
+  - name: PLAYWRIGHT_BROWSERS_PATH
+    required: false
+    secret: false
+    description: Path to Playwright browsers (default /ms-playwright)
+tools:
+  - playwright_navigate
+  - playwright_screenshot
+  - playwright_click
+  - playwright_fill
+  - playwright_select
+  - playwright_hover
+  - playwright_evaluate
+  - playwright_accessibility_snapshot
+  - playwright_console
+  - playwright_close
+publish_image: true
+compliance:
+  license_verified: true
+  authors: ["Microsoft Corporation"]
+  copyright: "© 2024 Microsoft Corporation"
+  last_checked: 2026-06-09

@@ -1,0 +1,23 @@
+name: tavily-search
+upstream:
+  repo: https://github.com/Tomatio13/mcp-server-tavily
+  commit: 261215247293d6299b108f9f887eeddb5006ac97
+  license: MIT
+runner: python
+build:
+  install: uv sync --frozen
+  entrypoint: ["tavily-search"]
+transport: stdio
+env:
+  - name: TAVILY_API_KEY
+    required: true
+    secret: true
+    description: Tavily API key from https://tavily.com/
+tools:
+  - search
+publish_image: true
+compliance:
+  license_verified: true
+  authors: ["Tomatio13"]
+  copyright: "© 2024"
+  last_checked: 2026-06-09

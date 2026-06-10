@@ -1,0 +1,62 @@
+name: notion
+version: 2.34.7
+description: Better Notion MCP Server - Markdown-first Notion API with 9 composite tools, 77% token reduction via tiered docs
+language: typescript
+packageManager: npm
+
+upstream:
+  repo: https://github.com/n24q02m/better-notion-mcp
+  commit: 745c4c7
+  license: MIT
+
+tools:
+  - name: list_databases
+    description: List all accessible databases in workspace
+  - name: query_database
+    description: Query database with filters and sorts
+  - name: create_page
+    description: Create a new page with markdown content
+  - name: update_page
+    description: Update page properties and content
+  - name: get_page
+    description: Get page content in markdown format
+  - name: search_notion
+    description: Search across workspace pages and databases
+  - name: append_blocks
+    description: Append blocks to a page
+  - name: delete_block
+    description: Delete a block
+  - name: get_block_children
+    description: Get child blocks of a parent block
+
+env:
+  required:
+    - name: NOTION_API_KEY
+      description: Notion Integration Token (Internal Integration)
+      example: "secret_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      sensitive: true
+
+build:
+  context: .
+  dockerfile: Dockerfile
+
+runtime:
+  entrypoint: ["node", "build/src/init-server.js"]
+
+notes: |
+  - Requires Notion Integration Token from https://www.notion.so/my-integrations
+  - Markdown-first approach: converts between Markdown and Notion blocks
+  - 9 composite tools replacing 28+ endpoint calls
+  - ~77% token reduction via tiered documentation
+  - Auto-pagination and bulk operations
+  - Supports databases, pages, blocks
+  - Integration must be invited to specific pages/databases
+  - Handles rich text, toggles, callouts, code blocks, tables
+
+compliance:
+  attribution_file: ATTRIBUTION.md
+  license_verified: true
+  license_compatible: true
+  copyright_holders:
+    - "n24q02m"
+  upstream_license_url: https://github.com/n24q02m/better-notion-mcp/blob/main/LICENSE

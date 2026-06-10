@@ -1,0 +1,136 @@
+name: discord
+version: 1.2.0
+description: Discord MCP Server - Comprehensive Discord bot integration with 46 tools for channels, messages, roles, threads, and moderation
+language: typescript
+packageManager: npm
+
+upstream:
+  repo: https://github.com/iprashantraj/mcp-discord-bridge
+  commit: 5f1fae1
+  license: MIT
+
+tools:
+  - name: list_guilds
+    description: List all servers the bot is in
+  - name: get_guild
+    description: Get detailed guild/server information
+  - name: list_channels
+    description: List all channels in a guild
+  - name: get_channel
+    description: Get detailed channel information
+  - name: create_channel
+    description: Create a new channel
+  - name: delete_channel
+    description: Delete a channel
+  - name: send_message
+    description: Send a message to a channel
+  - name: edit_message
+    description: Edit an existing message
+  - name: delete_message
+    description: Delete a message
+  - name: get_messages
+    description: Get messages from a channel
+  - name: pin_message
+    description: Pin a message
+  - name: unpin_message
+    description: Unpin a message
+  - name: add_reaction
+    description: Add emoji reaction to a message
+  - name: remove_reaction
+    description: Remove emoji reaction
+  - name: list_members
+    description: List guild members
+  - name: get_member
+    description: Get member details
+  - name: kick_member
+    description: Kick a member from guild
+  - name: ban_member
+    description: Ban a member
+  - name: unban_member
+    description: Unban a member
+  - name: list_roles
+    description: List all roles in guild
+  - name: create_role
+    description: Create a new role
+  - name: edit_role
+    description: Edit role properties
+  - name: delete_role
+    description: Delete a role
+  - name: assign_role
+    description: Assign role to member
+  - name: remove_role
+    description: Remove role from member
+  - name: create_thread
+    description: Create a new thread
+  - name: list_threads
+    description: List threads in channel
+  - name: join_thread
+    description: Join a thread
+  - name: leave_thread
+    description: Leave a thread
+  - name: archive_thread
+    description: Archive a thread
+  - name: create_webhook
+    description: Create a webhook
+  - name: list_webhooks
+    description: List webhooks
+  - name: delete_webhook
+    description: Delete a webhook
+  - name: execute_webhook
+    description: Execute webhook to send message
+  - name: list_invites
+    description: List guild invites
+  - name: create_invite
+    description: Create an invite
+  - name: delete_invite
+    description: Delete an invite
+  - name: get_audit_log
+    description: Get audit log entries
+  - name: list_emojis
+    description: List guild custom emojis
+  - name: create_forum_post
+    description: Create a forum post
+  - name: list_forum_posts
+    description: List forum posts
+  - name: get_forum_post
+    description: Get forum post details
+  - name: edit_forum_post
+    description: Edit forum post
+  - name: delete_forum_post
+    description: Delete forum post
+  - name: set_slowmode
+    description: Set channel slowmode
+  - name: bulk_delete_messages
+    description: Bulk delete messages
+
+env:
+  required:
+    - name: DISCORD_BOT_TOKEN
+      description: Discord bot token from Discord Developer Portal
+      example: "MTxxxxxxxxxxxxx.xxxxxx.xxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      sensitive: true
+
+build:
+  context: .
+  dockerfile: Dockerfile
+
+runtime:
+  entrypoint: ["node", "dist/index.js"]
+
+notes: |
+  - Requires Discord Bot Token from https://discord.com/developers/applications
+  - Bot needs appropriate permissions (manage channels, messages, roles, etc.)
+  - Zero-install via: npx -y mcp-discord-bridge
+  - Supports multi-guild operations
+  - Comprehensive moderation tools
+  - Thread and forum support
+  - Webhook management
+  - Required bot intents: Guilds, GuildMembers, GuildMessages, MessageContent
+
+compliance:
+  attribution_file: ATTRIBUTION.md
+  license_verified: true
+  license_compatible: true
+  copyright_holders:
+    - "iprashantraj"
+  upstream_license_url: https://github.com/iprashantraj/mcp-discord-bridge/blob/main/LICENSE

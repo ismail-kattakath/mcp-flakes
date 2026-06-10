@@ -1,0 +1,82 @@
+name: redis-mcp
+version: 0.5.0
+description: Official Redis MCP Server - Natural language interface for AI agents to manage and search data in Redis
+author: Redis, inc.
+repository: https://github.com/redis/mcp-redis
+license: MIT
+language: python
+
+inputs:
+  - name: REDIS_URL
+    description: Redis connection URL
+    required: true
+    secret: false
+    default: redis://localhost:6379
+    example: redis://localhost:6379
+
+  - name: REDIS_PASSWORD
+    description: Redis password for authentication
+    required: false
+    secret: true
+    example: your-redis-password
+
+  - name: REDIS_USERNAME
+    description: Redis username for ACL authentication
+    required: false
+    secret: false
+    example: default
+
+  - name: REDIS_DB
+    description: Redis database number (0-15)
+    required: false
+    secret: false
+    default: "0"
+    example: "0"
+
+  - name: REDIS_CLUSTER_MODE
+    description: Enable Redis cluster mode
+    required: false
+    secret: false
+    default: "false"
+    example: "true"
+
+  - name: MCP_DOCS_SEARCH_URL
+    description: URL for Redis documentation search API
+    required: false
+    secret: false
+    example: https://api.redis.com/docs/search
+
+outputs:
+  - name: MCP_SERVER
+    description: Redis MCP server endpoint
+    value: stdio://redis-mcp-server
+
+tools:
+  - string_set: Set string value with optional expiration
+  - string_get: Get string value
+  - hash_set: Store field-value pairs with optional vector embeddings
+  - hash_get: Retrieve hash fields
+  - list_push: Append items to list
+  - list_pop: Pop items from list
+  - set_add: Add members to set
+  - set_members: List set members
+  - sorted_set_add: Add scored members to sorted set
+  - sorted_set_range: Get sorted set range by score
+  - pubsub_publish: Publish messages to channels
+  - pubsub_subscribe: Create channel subscriptions
+  - stream_add: Add entries to stream
+  - stream_read: Read stream entries
+  - stream_group_create: Create consumer groups
+  - json_set: Store JSON documents
+  - json_get: Retrieve JSON documents
+  - vector_index_create: Create vector search index
+  - vector_search: Perform vector similarity search
+  - docs_search: Search Redis documentation
+  - server_info: Get Redis server information
+
+categories:
+  - database
+  - cache
+  - vector-search
+  - real-time
+  - official

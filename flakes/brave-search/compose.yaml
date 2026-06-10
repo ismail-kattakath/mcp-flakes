@@ -1,0 +1,10 @@
+services:
+  mcp-brave-search:
+    image: ghcr.io/mcp-flakes/brave-search:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    stdin_open: true
+    environment:
+      - BRAVE_API_KEY=${BRAVE_API_KEY}
+      - BRAVE_MCP_TRANSPORT=stdio

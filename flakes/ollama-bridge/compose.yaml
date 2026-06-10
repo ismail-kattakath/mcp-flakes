@@ -1,0 +1,10 @@
+services:
+  mcp-ollama-bridge:
+    image: ghcr.io/mcp-flakes/ollama-bridge:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    stdin_open: true
+    tty: false
+    environment:
+      - OLLAMA_HOST=${OLLAMA_HOST:-http://host.docker.internal:11434}

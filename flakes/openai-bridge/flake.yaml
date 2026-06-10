@@ -1,0 +1,25 @@
+name: openai-bridge
+version: latest
+description: MCP Server - Bridge to OpenAI API. Access GPT-4, GPT-4o and other OpenAI models through MCP.
+runner: python
+source:
+  repo: https://github.com/jaspertvdm/mcp-server-openai-bridge
+  commit: bc2b0dbae26c5f7ddf8dfbea79aa2f34725fd4f8
+build:
+  type: pypi
+  package: mcp-server-openai-bridge
+tools:
+  - name: openai_chat
+    description: Send chat messages to OpenAI models (GPT-4, GPT-3.5, etc.)
+  - name: openai_completion
+    description: Generate text completions using OpenAI API
+env:
+  - name: OPENAI_API_KEY
+    required: true
+    secret: true
+    description: Your OpenAI API key (starts with sk-)
+compliance:
+  license_verified: true
+  authors: ["Jasper van de Meent"]
+  copyright: "© 2026 Jasper van de Meent"
+  last_checked: 2024-06-09

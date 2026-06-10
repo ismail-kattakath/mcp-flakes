@@ -1,0 +1,44 @@
+name: orcarouter-mcp
+version: 1.1.5
+description: Official MCP server for OrcaRouter LLM gateway. Browse 160+ LLM models (OpenAI, Anthropic, Google, Qwen, DeepSeek) with live pricing and automatic fallback routing.
+runner: node
+source:
+  repo: https://github.com/Continuum-AI-Corp/orcarouter-mcp-server
+  commit: 02084c34a5658e745986772d8a2a35da80aa3508
+build:
+  type: npm-package
+  package: "@orcarouter/mcp"
+  package_version: "1.1.5"
+  install: npm install -g @orcarouter/mcp@1.1.5
+  entrypoint: ["npx", "-y", "@orcarouter/mcp"]
+transport: stdio
+tools:
+  - name: orcarouter_chat
+    description: Run chat completion through any OrcaRouter model with fallback chains
+  - name: orcarouter_models_list
+    description: Browse the catalog with pricing, context, and capabilities
+  - name: orcarouter_model_card
+    description: Get detailed info for a specific model
+  - name: orcarouter_providers_list
+    description: List all providers with model counts
+env:
+  - name: ORCAROUTER_API_KEY
+    required: false
+    secret: true
+    description: OrcaRouter API key (optional - only needed for orcarouter_chat, catalog tools work without it)
+  - name: ORCAROUTER_BASE_URL
+    required: false
+    secret: false
+    description: API base URL (default https://api.orcarouter.ai)
+    default: https://api.orcarouter.ai
+  - name: ORCAROUTER_REQUEST_TIMEOUT
+    required: false
+    secret: false
+    description: Per-request HTTP timeout in seconds (default 300)
+    default: "300"
+publish_image: true
+compliance:
+  license_verified: true
+  authors: ["OrcaRouter / Continuum AI Corp"]
+  copyright: "© 2026 Continuum AI Corp"
+  last_checked: 2024-06-09

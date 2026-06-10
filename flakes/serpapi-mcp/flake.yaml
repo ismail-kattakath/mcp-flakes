@@ -1,0 +1,29 @@
+name: serpapi-mcp
+upstream:
+  repo: https://github.com/serpapi/serpapi-mcp
+  commit: a18058bfa8c81e8f11b7254bc601a151f5e3e081
+  license: MIT
+runner: python
+build:
+  install: uv sync --frozen
+  entrypoint: ["python", "src/server.py"]
+transport: http
+http:
+  port: 8000
+  path: /mcp
+env:
+  - name: SERPAPI_API_KEY
+    required: true
+    secret: true
+    description: SerpAPI key from https://serpapi.com/manage-api-key
+tools:
+  - search
+resources:
+  - serpapi://engines
+  - serpapi://engines/<engine>
+publish_image: true
+compliance:
+  license_verified: true
+  authors: ["SerpApi LLC"]
+  copyright: "© 2024 SerpApi LLC"
+  last_checked: 2026-06-09

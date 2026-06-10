@@ -1,0 +1,10 @@
+services:
+  mcp-exa-search:
+    image: ghcr.io/mcp-flakes/exa-search:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - EXA_API_KEY=${EXA_API_KEY}

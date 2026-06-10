@@ -1,0 +1,71 @@
+name: mongodb-mcp
+version: 2.0.2
+description: Model Context Protocol server for MongoDB with schema inference, queries, aggregations, and write operations
+author: kiliczsh
+repository: https://github.com/kiliczsh/mcp-mongo-server
+license: MIT
+language: typescript
+
+inputs:
+  - name: MCP_MONGODB_URI
+    description: MongoDB connection URI
+    required: true
+    secret: false
+    example: mongodb://localhost:27017/database
+
+  - name: MCP_MONGODB_READONLY
+    description: Enable read-only mode (no write operations)
+    required: false
+    secret: false
+    default: "false"
+    example: "true"
+
+  - name: MONGODB_USERNAME
+    description: MongoDB authentication username
+    required: false
+    secret: false
+    example: admin
+
+  - name: MONGODB_PASSWORD
+    description: MongoDB authentication password
+    required: false
+    secret: true
+    example: secure-password
+
+  - name: MONGODB_DATABASE
+    description: Default database name
+    required: false
+    secret: false
+    example: myapp
+
+  - name: MONGODB_OBJECTID_MODE
+    description: ObjectId handling mode (auto/none/force)
+    required: false
+    secret: false
+    default: auto
+    example: auto
+
+outputs:
+  - name: MCP_SERVER
+    description: MongoDB MCP server endpoint
+    value: stdio://mcp-mongo-server
+
+tools:
+  - query: Execute MongoDB queries with optional explain plans
+  - aggregate: Run aggregation pipelines
+  - insert_one: Insert single document
+  - insert_many: Insert multiple documents
+  - update_one: Update single document
+  - update_many: Update multiple documents
+  - delete_one: Delete single document
+  - delete_many: Delete multiple documents
+  - create_index: Create collection indexes
+  - get_schema: Infer collection schema from samples
+  - list_collections: List available collections
+  - count_documents: Count documents matching filter
+
+categories:
+  - database
+  - nosql
+  - document-store
+  - popular

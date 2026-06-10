@@ -1,0 +1,33 @@
+name: whatsapp-mcp
+upstream:
+  repo: https://github.com/nakulben/whatsapp-mcp
+  commit: HEAD
+  license: MIT
+  package: jina-whatsapp-mcp
+  package_version: latest
+runner: python
+build:
+  install: uv pip install jina-whatsapp-mcp
+  entrypoint: ["python", "-m", "whatsapp_mcp"]
+transport: stdio
+env:
+  - WHATSAPP_API_KEY
+  - WHATSAPP_PHONE_NUMBER_ID
+  - WHATSAPP_BUSINESS_ACCOUNT_ID
+tools:
+  - list_templates
+  - get_template
+  - create_template
+  - send_template_message
+  - send_text_message
+  - send_image_message
+  - send_video_message
+  - send_document_message
+  - send_location_message
+  - validate_template
+publish_image: true
+compliance:
+  license_verified: true
+  authors: ["Nakul Beniwal"]
+  copyright: "© 2026 Nakul Beniwal"
+  last_checked: 2026-06-09

@@ -1,0 +1,65 @@
+name: package-registry
+version: 2.1.0
+description: Multi-Registry Package MCP Server - search NPM, Cargo, PyPI, and NuGet packages
+language: typescript
+packageManager: npm
+
+upstream:
+  repo: https://github.com/Artmann/package-registry-mcp
+  commit: 89e60ef40f8c82856b637b0cfbcc417773dd4e03
+  path: .
+  license: MIT
+
+tools:
+  - name: search_npm_packages
+    description: Search for packages on npm registry
+  - name: get_npm_package
+    description: Get detailed information about an npm package
+  - name: search_cargo_packages
+    description: Search for packages on Cargo (Rust) registry
+  - name: get_cargo_package
+    description: Get detailed information about a Cargo package
+  - name: search_pypi_packages
+    description: Search for packages on PyPI (Python) registry
+  - name: get_pypi_package
+    description: Get detailed information about a PyPI package
+  - name: search_nuget_packages
+    description: Search for packages on NuGet (.NET) registry
+  - name: get_nuget_package
+    description: Get detailed information about a NuGet package
+  - name: compare_package_versions
+    description: Compare versions across different registries
+  - name: get_package_dependencies
+    description: Get dependency information for a package
+  - name: get_package_releases
+    description: Get release history for a package
+  - name: get_package_stats
+    description: Get download statistics for a package
+
+env:
+  optional: []
+
+build:
+  context: .
+  dockerfile: Dockerfile
+
+runtime:
+  entrypoint: ["node", "dist/index.js"]
+
+notes: |
+  - No API keys required - all queries are public
+  - Supports 4 major package registries: npm, Cargo, PyPI, NuGet
+  - Real-time package information and statistics
+  - Version comparison across ecosystems
+  - Download statistics and popularity metrics
+  - Dependency tree analysis
+  - Release history and changelog access
+  - Perfect for dependency research and package discovery
+
+compliance:
+  attribution_file: ATTRIBUTION.md
+  license_verified: true
+  license_compatible: true
+  copyright_holders:
+    - "Christoffer Artmann"
+  upstream_license_url: https://github.com/Artmann/package-registry-mcp/blob/main/LICENSE

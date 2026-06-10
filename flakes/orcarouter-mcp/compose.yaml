@@ -1,0 +1,12 @@
+services:
+  mcp-orcarouter:
+    image: ghcr.io/mcp-flakes/orcarouter-mcp:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    stdin_open: true
+    tty: false
+    environment:
+      - ORCAROUTER_API_KEY=${ORCAROUTER_API_KEY}
+      - ORCAROUTER_BASE_URL=${ORCAROUTER_BASE_URL:-https://api.orcarouter.ai}
+      - ORCAROUTER_REQUEST_TIMEOUT=${ORCAROUTER_REQUEST_TIMEOUT:-300}
