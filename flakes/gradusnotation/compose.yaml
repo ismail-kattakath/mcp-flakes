@@ -1,0 +1,9 @@
+name: gradusnotation
+services:
+  gradusnotation:
+    image: ghcr.io/aloshy-ai/mcp-flakes/gradusnotation:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    stdin_open: true
+    tty: false

@@ -1,0 +1,20 @@
+name: pixel-surgeon-mcp
+services:
+  pixel-surgeon-mcp:
+    image: ghcr.io/aloshy-ai/mcp-flakes/pixel-surgeon-mcp:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    stdin_open: true
+    tty: false
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - XAI_API_KEY=${XAI_API_KEY:-}
+      - DEFAULT_IMAGE_MODEL=${DEFAULT_IMAGE_MODEL:-gemini-3.1-flash-image}
+      - WORKSPACE_DIR=${WORKSPACE_DIR:-/workspace}
+    volumes:
+      - pixel-surgeon-workspace:/workspace
+
+volumes:
+  pixel-surgeon-workspace:

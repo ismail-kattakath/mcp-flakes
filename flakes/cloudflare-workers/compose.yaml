@@ -1,0 +1,18 @@
+services:
+  mcp-cloudflare-workers:
+    # Prebuilt image (instant pull) - will be pushed by CI
+    image: ghcr.io/mcp-flakes/cloudflare-workers:latest
+
+    # Build fallback - used if pull fails or for local development
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    # Environment variables (pass-through pattern for bundle overrides)
+    environment:
+      - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}
+      - CLOUDFLARE_ACCOUNT_ID=${CLOUDFLARE_ACCOUNT_ID}
+
+    # Stdio transport - no ports exposed
+    stdin_open: true
+    tty: false

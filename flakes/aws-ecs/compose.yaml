@@ -1,0 +1,25 @@
+services:
+  mcp-aws-ecs:
+    # Prebuilt image (instant pull) - will be pushed by CI
+    image: ghcr.io/mcp-flakes/aws-ecs:latest
+
+    # Build fallback - used if pull fails or for local development
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    # Environment variables (pass-through pattern for bundle overrides)
+    environment:
+      - AWS_REGION=${AWS_REGION}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - ALLOW_SENSITIVE_DATA=${ALLOW_SENSITIVE_DATA:-false}
+      - ALLOW_WRITE=${ALLOW_WRITE:-false}
+
+    # Mount Docker socket for containerization
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+    # Stdio transport - no ports exposed
+    stdin_open: true
+    tty: false

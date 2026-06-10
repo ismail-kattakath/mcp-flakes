@@ -2,7 +2,7 @@
 # Built from: github.com/julien040/anyquery @ 66d5e684cd0a1a4086758aadaf3b22aee4e6e498
 
 # Builder stage
-FROM golang:1.22-bookworm AS builder
+FROM golang:1.23-bookworm AS builder
 
 LABEL org.opencontainers.image.source="https://github.com/julien040/anyquery"
 LABEL org.opencontainers.image.authors="Julien Riou"
@@ -21,7 +21,8 @@ WORKDIR /build
 RUN git clone https://github.com/julien040/anyquery.git . && \
     git checkout 66d5e684cd0a1a4086758aadaf3b22aee4e6e498
 
-# Build the binary
+# Build the binary with GOTOOLCHAIN auto to download newer Go if needed
+ENV GOTOOLCHAIN=auto
 RUN CGO_ENABLED=1 go build -ldflags="-s -w" -o anyquery .
 
 # Runtime stage

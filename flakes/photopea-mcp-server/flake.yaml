@@ -1,0 +1,73 @@
+name: photopea-mcp-server
+upstream:
+  repo: https://github.com/attalla1/photopea-mcp-server
+  commit: ef544a62485dc4e9aeeebff96542389f66298524
+  license: MIT
+  package: "photopea-mcp-server"
+  package_version: "0.1.1"
+runner: node
+build:
+  type: npm-package
+  install: npm install -g photopea-mcp-server@0.1.1
+  entrypoint: ["npx", "photopea-mcp-server"]
+transport: stdio
+env: []
+tools:
+  - photopea_create_document
+  - photopea_open_file
+  - photopea_get_document_info
+  - photopea_resize_document
+  - photopea_close_document
+  - photopea_add_layer
+  - photopea_add_fill_layer
+  - photopea_delete_layer
+  - photopea_select_layer
+  - photopea_set_layer_properties
+  - photopea_move_layer
+  - photopea_duplicate_layer
+  - photopea_reorder_layer
+  - photopea_group_layers
+  - photopea_ungroup_layers
+  - photopea_get_layers
+  - photopea_add_text
+  - photopea_edit_text
+  - photopea_add_shape
+  - photopea_place_image
+  - photopea_apply_adjustment
+  - photopea_apply_filter
+  - photopea_transform_layer
+  - photopea_add_gradient
+  - photopea_make_selection
+  - photopea_modify_selection
+  - photopea_fill_selection
+  - photopea_clear_selection
+  - photopea_export_image
+  - photopea_load_font
+  - photopea_list_fonts
+  - photopea_run_script
+  - photopea_undo
+  - photopea_redo
+publish_image: true
+compliance:
+  upstream_license: MIT
+  upstream_author: attalla1
+  upstream_copyright: "Copyright (c) 2025 attalla1"
+  attribution_file: ATTRIBUTION.md
+  license_verified: true
+  license_url: https://github.com/attalla1/photopea-mcp-server/blob/ef544a62485dc4e9aeeebff96542389f66298524/LICENSE
+labels:
+  category: creative
+  subcategories:
+    - image-editing
+    - graphic-design
+  capabilities:
+    - photoshop-alternative
+    - layer-editing
+    - text-editing
+    - image-effects
+    - filters
+    - export
+  special_requirements:
+    - browser-based
+    - websocket-connection
+  note: "Requires browser to be open at localhost for Photopea web app"

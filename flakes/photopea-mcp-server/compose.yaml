@@ -1,0 +1,13 @@
+name: photopea-mcp-server
+services:
+  photopea-mcp-server:
+    image: ghcr.io/aloshy-ai/mcp-flakes/photopea-mcp-server:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    stdin_open: true
+    tty: false
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=${PORT:-3000}

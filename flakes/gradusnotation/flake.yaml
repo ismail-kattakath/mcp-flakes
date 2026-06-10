@@ -1,0 +1,50 @@
+name: gradusnotation
+upstream:
+  repo: https://github.com/delmas41/gradusnotation
+  commit: 2ac9bb5b6bd5199ab6309ab2e9528e1b1ba26be5
+  license: MIT
+  package: "@gradusmusic/notation-mcp"
+  package_version: "0.2.5"
+runner: node
+build:
+  type: npm-package
+  install: npm install -g @gradusmusic/notation-mcp@0.2.5
+  entrypoint: ["npx", "-y", "@gradusmusic/notation-mcp"]
+transport: stdio
+env: []
+tools:
+  - notation_render
+  - notation_validate
+  - knowledge_search
+  - notation_examples
+  - notation_schema
+  - theory_analyze_score
+  - theory_parse_xml
+  - theory_validate_ranges
+  - theory_respell
+  - theory_pitch_utils
+publish_image: true
+compliance:
+  upstream_license: MIT
+  upstream_author: Gradus Music
+  upstream_copyright: "Copyright (c) 2025 Gradus Music"
+  attribution_file: ATTRIBUTION.md
+  license_verified: true
+  license_url: https://github.com/delmas41/gradusnotation/blob/2ac9bb5b6bd5199ab6309ab2e9528e1b1ba26be5/LICENSE
+labels:
+  category: creative
+  subcategories:
+    - music
+    - notation
+    - composition
+  capabilities:
+    - music-notation-rendering
+    - musicxml-export
+    - midi-export
+    - harmonic-analysis
+    - music-theory
+  output_formats:
+    - svg
+    - musicxml
+    - midi
+    - json
