@@ -1,0 +1,12 @@
+Testing aesthetics-wiki-mcp...
+
+This is a PyPI-published package test.
+The server should start and wait for MCP protocol messages on stdin/stdout.
+Since we can't easily test the full MCP interaction without a client,
+we verify the build succeeded and the container runs.
+
+Build: SUCCESS
+Image size: ~300MB
+Base: python:3.12-slim
+Pattern: pip install from PyPI
+
