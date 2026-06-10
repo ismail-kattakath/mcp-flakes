@@ -42,7 +42,7 @@ on:
 jobs:
   synthesize:
     name: synthesize
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, mcp-flakes]
     env:
       CLAUDE_CODE_USE_BEDROCK: '1'
       AWS_REGION: us-east-2

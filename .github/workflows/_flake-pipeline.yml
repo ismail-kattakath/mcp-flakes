@@ -39,7 +39,7 @@ on:
 jobs:
   expand-and-filter:
     name: expand + filter
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, mcp-flakes]
     permissions:
       contents: read
       issues: write
@@ -158,7 +158,7 @@ jobs:
     name: resolve commit SHA
     needs: expand-and-filter
     if: ${{ needs.expand-and-filter.outputs.continue == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, mcp-flakes]
     outputs:
       commit_sha: ${{ steps.sha.outputs.commit_sha }}
     steps:
@@ -177,7 +177,7 @@ jobs:
     name: build pre-candidate
     needs: [expand-and-filter, resolve-commit]
     if: ${{ needs.expand-and-filter.outputs.continue == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, mcp-flakes]
     outputs:
       candidate: ${{ steps.j.outputs.candidate }}
     steps:
@@ -209,7 +209,7 @@ jobs:
     name: dedup-pre gate
     needs: [expand-and-filter, dedup-pre]
     if: ${{ always() && needs.expand-and-filter.outputs.continue == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, mcp-flakes]
     permissions:
       issues: write
     outputs:
@@ -264,7 +264,7 @@ jobs:
     name: build post-candidate
     needs: [expand-and-filter, resolve-commit, synthesize]
     if: ${{ needs.synthesize.outputs.ok == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, mcp-flakes]
     outputs:
       candidate: ${{ steps.j.outputs.candidate }}
     steps:
@@ -277,10 +277,16 @@ jobs:
           MANIFEST: ${{ needs.synthesize.outputs.manifest }}
         run: |
           set -euo pipefail
-          # Best-effort tool extraction from the YAML manifest; if yq is unavailable
-          # or the manifest has no tools key, pass empty array.
-          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
-          sudo chmod +x /usr/local/bin/yq
+          # Best-effort tool extraction from the YAML manifest.
+          if ! command -v yq &>/dev/null; then
+            YQ_OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+            YQ_ARCH=$(uname -m)
+              case "$YQ_ARCH" in x86_64) YQ_ARCH="amd64" ;; aarch64|arm64) YQ_ARCH="arm64" ;; esac
+            YQ_BIN="yq_${YQ_OS}_${YQ_ARCH}"
+            curl -sSfL -o /tmp/yq "https://github.com/mikefarah/yq/releases/latest/download/${YQ_BIN}"
+            chmod +x /tmp/yq
+            export PATH="/tmp:$PATH"
+          fi
 
           TOOLS_JSON=$(printf '%s' "$MANIFEST" | yq -o=json '.tools // []' 2>/dev/null || echo '[]')
           CAND=$(jq -nc \
@@ -313,7 +319,7 @@ jobs:
     name: compute flake name
     needs: [validate]
     if: ${{ needs.validate.outputs.ok == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, mcp-flakes]
     outputs:
       name: ${{ steps.name.outputs.name }}
     steps:
@@ -351,7 +357,7 @@ jobs:
     name: report to issue
     needs: [expand-and-filter, analyze, synthesize, validate, compute-flake-name, build-image, open-pr]
     if: ${{ always() && inputs.issue_number != 0 && needs.expand-and-filter.outputs.continue == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, mcp-flakes]
     permissions:
       issues: write
     steps:

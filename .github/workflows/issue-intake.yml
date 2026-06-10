@@ -12,7 +12,7 @@ permissions:
 jobs:
   intake:
     if: github.event.label.name == 'flake-request'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, mcp-flakes]
     outputs:
       repos_json: ${{ steps.parse.outputs.repos_json }}
       count: ${{ steps.parse.outputs.count }}
