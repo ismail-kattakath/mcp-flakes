@@ -30,13 +30,13 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # Final stage
 FROM python:3.12-slim-bookworm
 
-WORKDIR /repo/src/fetch
+WORKDIR /app
 
-# Copy the virtual environment from builder
-COPY --from=builder /repo/src/fetch/.venv /repo/src/fetch/.venv
-COPY --from=builder /repo/src/fetch /repo/src/fetch
+# Copy uv's managed Python and the virtual environment
+COPY --from=builder /root/.local /root/.local
+COPY --from=builder /repo/src/fetch/.venv /app/.venv
 
 # Place executables in the environment at the front of the path
-ENV PATH="/repo/src/fetch/.venv/bin:$PATH"
+ENV PATH="/app/.venv/bin:$PATH"
 
 ENTRYPOINT ["mcp-server-fetch"]

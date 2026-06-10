@@ -1,0 +1,24 @@
+name: claude-terminal-mcp
+upstream:
+  repo: https://github.com/LukeLamb/claude-terminal-mcp
+  commit: 25ee5511264ef1c84a1e9bc596dd5104fe1be5e3
+  license: MIT
+runner: node
+build:
+  install: null
+  entrypoint: ["node", "server.js"]
+transport: stdio
+env:
+  - name: DEFAULT_CWD
+    required: false
+    secret: false
+    description: Default working directory for terminal commands
+tools:
+  - execute_command
+  - read_file
+  - write_file
+  - list_directory
+  - start_background_job
+  - stop_background_job
+  - list_jobs
+publish_image: true

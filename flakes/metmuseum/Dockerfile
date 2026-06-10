@@ -4,12 +4,14 @@
 # Use pinned node runner
 FROM node@sha256:10fc5f5f33cba34a4befa58fcf95f724e67707fab7c32fb8cd3fcf90ebcc20df
 
-# Install git and ca-certificates
+# Install git, ca-certificates, and enable corepack for pnpm
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     git \
     ca-certificates && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/* && \
+    corepack enable && \
+    corepack prepare pnpm@latest --activate
 
 WORKDIR /repo
 
@@ -17,11 +19,11 @@ WORKDIR /repo
 RUN git clone https://github.com/mikechao/metmuseum-mcp.git . && \
     git checkout 576b5441daa04cae33d4583c23c35074390c9e2f
 
-# Install dependencies
-RUN npm install
+# Install dependencies with pnpm
+RUN pnpm install
 
 # Build the server
-RUN npm run build
+RUN pnpm run build
 
 # Set entrypoint
 ENTRYPOINT ["node", "dist/index.js"]

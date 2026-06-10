@@ -1,0 +1,60 @@
+name: excalidraw-architect-mcp
+version: 1.0.3
+description: Generate beautiful Excalidraw architecture diagrams with perfect auto-layout and architecture-aware component styling
+runner: python
+source:
+  repo: https://github.com/BV-Venky/excalidraw-architect-mcp
+  commit: 74742702b5f4ad8ca54b9c7141e40429974b9299
+build:
+  type: pypi
+  package: excalidraw-architect-mcp
+tools:
+  - name: create_diagram
+    description: Create a new diagram from structured node/connection data
+  - name: mermaid_to_excalidraw
+    description: Convert Mermaid flowchart syntax to .excalidraw
+  - name: modify_diagram
+    description: Add/remove/update nodes and connections on an existing diagram
+  - name: get_diagram_info
+    description: Read current diagram state
+  - name: export_diagram
+    description: Export .excalidraw to SVG or PNG image
+  - name: kg_init
+    description: Create a new knowledge graph file
+  - name: kg_add_service
+    description: Add/update a service in the knowledge graph
+  - name: kg_remove_service
+    description: Remove a service from the knowledge graph
+  - name: kg_link
+    description: Add a dependency between services
+  - name: kg_unlink
+    description: Remove a dependency
+  - name: kg_set_domain
+    description: Group a service into a domain
+  - name: kg_info
+    description: Summarize services, domains, and topology
+  - name: kg_render
+    description: Render the whole architecture to .excalidraw
+  - name: kg_render_view
+    description: Render a focused diagram of specific services
+  - name: kg_render_around
+    description: Render everything within N hops of a service
+  - name: kg_render_domain
+    description: Render a single domain
+  - name: kg_import
+    description: Bootstrap the graph from an existing .excalidraw diagram
+  - name: whats_connected_to
+    description: Impact analysis - upstream/downstream blast radius
+  - name: kg_path
+    description: Trace the dependency path between two services
+  - name: kg_lint
+    description: Health check for cycles, single points of failure, orphans
+  - name: kg_export
+    description: Export the graph to Mermaid, Graphviz DOT, or JSON
+  - name: kg_diff
+    description: Show how the architecture changed since a git ref
+  - name: kg_onboarding_doc
+    description: Generate a human onboarding guide from the graph
+  - name: kg_drift
+    description: Detect drift between the declared graph and Python imports
+env: []

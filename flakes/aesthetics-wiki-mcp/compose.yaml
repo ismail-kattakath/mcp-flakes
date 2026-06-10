@@ -1,0 +1,8 @@
+services:
+  aesthetics-wiki-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mcp-flakes/aesthetics-wiki-mcp:latest
+    stdin_open: true
+    tty: false

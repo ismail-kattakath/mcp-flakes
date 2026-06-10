@@ -1,0 +1,22 @@
+name: aesthetics-wiki-mcp
+version: 0.2.0
+description: MCP server for the Aesthetics Wiki. Search, read, and discover aesthetics from your LLM.
+runner: python
+source:
+  repo: https://github.com/leonardoca1/aesthetics-wiki-mcp
+  commit: 70dcd681ebbdfdfc8ce7b30347bb5708c48b1b41
+build:
+  type: pypi
+  package: aesthetics-wiki-mcp
+tools:
+  - name: search_aesthetic
+    description: Full-text search across the wiki
+  - name: get_aesthetic
+    description: Fetch a page's cleaned content + main image URL
+  - name: get_aesthetic_images
+    description: Gallery of image URLs from a page
+  - name: list_related
+    description: List aesthetics linked from a page
+  - name: random_aesthetic
+    description: Pick random aesthetics for inspiration
+env: []

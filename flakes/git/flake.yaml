@@ -7,7 +7,7 @@ upstream:
 runner: python
 build:
   install: uv sync --locked --no-dev --no-editable
-  entrypoint: ["mcp-server-git"]
+  entrypoint: ["python", "-m", "mcp_server_git"]
 transport: stdio
 tools:
   - git_status

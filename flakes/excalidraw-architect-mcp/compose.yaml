@@ -1,0 +1,12 @@
+services:
+  excalidraw-architect-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mcp-flakes/excalidraw-architect-mcp:latest
+    stdin_open: true
+    tty: false
+    volumes:
+      # Mount a directory for diagram files and knowledge graph
+      - ./workspace:/workspace
+    working_dir: /workspace

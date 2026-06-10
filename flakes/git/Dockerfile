@@ -37,11 +37,12 @@ RUN apt-get update && \
 
 WORKDIR /app
 
-# Copy the virtual environment from builder
+# Copy the uv Python installation and virtual environment from builder
+COPY --from=builder /root/.local /root/.local
 COPY --from=builder /repo/src/git/.venv /app/.venv
 
 # Place executables in the environment at the front of the path
 ENV PATH="/app/.venv/bin:$PATH"
 
-# Set entrypoint
-ENTRYPOINT ["mcp-server-git"]
+# Set entrypoint - use python directly since the script has a builder-specific shebang
+ENTRYPOINT ["python", "-m", "mcp_server_git"]

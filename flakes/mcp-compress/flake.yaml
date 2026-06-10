@@ -1,0 +1,18 @@
+name: mcp-compress
+upstream:
+  repo: https://github.com/ShipItAndPray/mcp-compress
+  commit: 610408e55d912466aaa5b442a51f2b31cae3c6fe
+  license: MIT
+runner: node
+build:
+  install: null
+  entrypoint: ["node", "index.js"]
+transport: stdio
+tools:
+  - compress
+  - decompress
+  - analyze
+  - store
+  - retrieve
+  - stats
+publish_image: true

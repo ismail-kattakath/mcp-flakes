@@ -23,5 +23,5 @@ RUN git clone https://github.com/gupta-kush/spotify-mcp.git . && \
 # Install dependencies using uv
 RUN uv pip install --system .
 
-# Set entrypoint
-ENTRYPOINT ["python", "-m", "spotify_mcp"]
+# Set entrypoint (use the installed CLI script)
+ENTRYPOINT ["spotify-mcp"]

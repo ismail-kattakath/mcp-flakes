@@ -1,0 +1,20 @@
+name: mcp-market-data
+upstream:
+  repo: https://github.com/ShipItAndPray/mcp-market-data
+  commit: f49a989304c8f5b2bfde6fb6254d50007d82832d
+  license: MIT
+runner: node
+build:
+  install: null
+  entrypoint: ["node", "index.js"]
+transport: stdio
+tools:
+  - price
+  - candles
+  - order_book
+  - market_cap
+  - trending
+  - analyze
+  - compare
+  - feargreed
+publish_image: true

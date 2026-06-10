@@ -6,7 +6,7 @@ upstream:
 runner: python
 build:
   install: uv pip install --system .
-  entrypoint: ["python", "-m", "spotify_mcp"]
+  entrypoint: ["spotify-mcp"]
 transport: stdio
 env:
   - name: SPOTIFY_CLIENT_ID

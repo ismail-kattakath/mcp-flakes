@@ -5,8 +5,8 @@ upstream:
   license: MIT
 runner: node
 build:
-  install: npm install
-  build: npm run build
+  install: pnpm install
+  build: pnpm run build
   entrypoint: ["node", "dist/index.js"]
 transport: stdio
 env:

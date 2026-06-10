@@ -30,16 +30,17 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # Final stage
 FROM python:3.12-slim-bookworm
 
-WORKDIR /repo/src/time
+WORKDIR /app
 
-# Copy the virtual environment from builder
-COPY --from=builder /repo/src/time/.venv /repo/src/time/.venv
-COPY --from=builder /repo/src/time /repo/src/time
+# Copy uv's managed Python and the virtual environment
+COPY --from=builder /root/.local /root/.local
+COPY --from=builder /repo/src/time/.venv /app/.venv
 
 # Place executables in the environment at the front of the path
-ENV PATH="/repo/src/time/.venv/bin:$PATH"
+ENV PATH="/app/.venv/bin:$PATH"
 
 # Set the LOCAL_TIMEZONE environment variable
-ENV LOCAL_TIMEZONE=${LOCAL_TIMEZONE:-UTC}
+ENV LOCAL_TIMEZONE=UTC
 
-ENTRYPOINT ["mcp-server-time", "--local-timezone", "${LOCAL_TIMEZONE}"]
+# Use shell form to allow variable expansion
+ENTRYPOINT ["/bin/sh", "-c", "mcp-server-time --local-timezone \"${LOCAL_TIMEZONE}\""]

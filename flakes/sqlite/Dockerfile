@@ -23,11 +23,9 @@ COPY --from=source /repo/src/sqlite /app
 ENV UV_COMPILE_BYTECODE=1
 ENV UV_LINK_MODE=copy
 
-# Install dependencies and project
+# Install dependencies and project using uv sync
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-dev --no-editable || \
-    (echo "No lock file found, installing without lock" && \
-     uv pip install -e .)
+    uv sync --frozen --no-dev --no-editable
 
 FROM python:3.12-slim-bookworm
 
